@@ -1,9 +1,42 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
 #define RL_BUFF_SIZE 1024
 #define TK_BUFF_SIZE 64
 #define TOK_DELIM " \t\r\n\a"
+
+void printtokens(char **);
+void get_dir()
+{
+	char cwd[1024];
+	if(getcwd(cwd, sizeof(cwd))  != NULL)
+	{
+		printf("[%s] ", cwd);
+	}
+	else
+		printf("getcwd() error");
+}
+
+
+int dash_cd(char **args)
+{
+	//get_dir();
+	if(args[1] == NULL)
+	{
+		fprintf(stderr, "please enter a path to cd");
+	}
+	else if(strcmp(args[0], "cd") == 0)
+	{
+		//printf("%s", args[1]);
+		if(chdir(args[1]) > 0)
+		{
+			perror("dash");
+		}
+	}
+	return 1;
+}
 
 char **split_line(char *line)
 {
@@ -38,7 +71,7 @@ char **split_line(char *line)
 	}
 
 	tokens[position] = NULL;
-	printtokens(tokens);
+	//printtokens(tokens);
 	return tokens;
 }
 
@@ -104,10 +137,12 @@ void loop()
 	int status=1;
 
 	do{
-		printf("->");
+		get_dir();
+		printf("> ");
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
+		status = dash_cd(args); 
 
 		//free(line);
 		//free(args);
