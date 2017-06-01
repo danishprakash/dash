@@ -7,7 +7,33 @@
 #define TK_BUFF_SIZE 64
 #define TOK_DELIM " \t\r\n\a"
 
+//function declarations
 void printtokens(char **);
+void get_dir();
+int dash_cd(char **);
+char **split_line(char *);
+char *read_line();
+int dash_echo(char **);
+
+int dash_echo(char **args)
+{
+	if(args[1] == NULL)
+	{
+		fprintf(stderr, "dash: Please enter an argument to echo\n");
+	}
+	else if(strcmp(args[0], "echo") == 0)	//move these checks  to another func later on
+	{
+		int i = 1;
+		while(args[i] != NULL)
+		{
+			printf("%s ", args[i]);
+			i++;
+		}
+		printf("\n");
+	}
+	return 1;
+}
+
 void get_dir()
 {
 	char cwd[1024];
@@ -25,9 +51,9 @@ int dash_cd(char **args)
 	//get_dir();
 	if(args[1] == NULL)
 	{
-		fprintf(stderr, "please enter a path to cd");
+		fprintf(stderr, "dash: Please enter a path to cd\n");
 	}
-	else if(strcmp(args[0], "cd") == 0)
+	else if(strcmp(args[0], "cd") == 0)	//move this check to another func later on
 	{
 		//printf("%s", args[1]);
 		if(chdir(args[1]) > 0)
@@ -142,7 +168,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_cd(args); 
+		status = dash_echo(args); 
 
 		//free(line);
 		//free(args);
