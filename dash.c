@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <dirent.h>
 
 #define RL_BUFF_SIZE 1024
 #define TK_BUFF_SIZE 64
@@ -14,7 +15,24 @@ int dash_cd(char **);
 char **split_line(char *);
 char *read_line();
 int dash_echo(char **);
+int dash_ls(char **);
 
+
+int dash_ls(char **args)
+{
+	struct dirent *dirPointer;	//directory pointer
+	DIR *dirReader = opendir(".");
+
+	if(!dirReader)
+		printf("dash: unable to list directory\n");
+
+	while((dirPointer = readdir(dirReader)) != NULL)
+		printf("%s\n", dirPointer->d_name);
+
+	closedir(dirReader);
+	return EXIT_SUCCESS;
+}
+	
 int dash_echo(char **args)
 {
 	if(args[1] == NULL)
@@ -168,7 +186,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_echo(args); 
+		status = dash_ls(args); 
 
 		//free(line);
 		//free(args);
