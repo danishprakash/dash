@@ -16,7 +16,19 @@ char **split_line(char *);
 char *read_line();
 int dash_echo(char **);
 int dash_ls(char **);
+int dash_exit(char **);
 
+
+int dash_exit(char **args)
+{
+	if(args[0] != NULL && strcmp(args[0], "exit") == 0)
+		return 0;
+	else
+	{
+		printf("dash: '%s' not a valid command\n", args[0]);
+		return 1;
+	}
+}
 
 int dash_ls(char **args)
 {
@@ -186,7 +198,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_ls(args); 
+		status = dash_exit(args); 
 
 		//free(line);
 		//free(args);
