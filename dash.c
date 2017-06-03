@@ -21,7 +21,21 @@ int dash_echo(char **);
 int dash_ls(char **);
 int dash_exit(char **);
 int dash_mkdir(char **);
+int dash_pwd(char **);
 
+
+int dash_pwd(char **args)
+{
+	if(args[0] != NULL && strcmp(args[0], "pwd") == 0)
+	{
+		get_dir();
+		printf("\n");
+	}
+	else
+		printf("dash: '%s' not a valid command\n", args[0]);
+	return 1;
+}
+		
 
 
 int dash_mkdir(char **args)
@@ -222,7 +236,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_mkdir(args); 
+		status = dash_pwd(args); 
 
 		//free(line);
 		//free(args);
