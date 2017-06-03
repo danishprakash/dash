@@ -3,6 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 
 #define RL_BUFF_SIZE 1024
 #define TK_BUFF_SIZE 64
@@ -17,6 +20,27 @@ char *read_line();
 int dash_echo(char **);
 int dash_ls(char **);
 int dash_exit(char **);
+int dash_mkdir(char **);
+
+
+
+int dash_mkdir(char **args)
+{
+	
+	struct stat st = {0};
+	//char *dirname = strcat("/", "b");
+	char *dirname = "~/programming/dash/test";
+	printf("**%s**", args[1]);
+	if(args[0] != NULL && strcmp(args[0], "mkdir") == 0)
+	{
+
+		if(stat(dirname, &st) == -1)
+		{
+			mkdir(dirname, 0777);
+		}
+	}
+	return 1;
+}
 
 
 int dash_exit(char **args)
@@ -198,7 +222,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_exit(args); 
+		status = dash_mkdir(args); 
 
 		//free(line);
 		//free(args);
