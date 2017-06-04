@@ -20,8 +20,30 @@ char *read_line();
 int dash_echo(char **);
 int dash_ls(char **);
 int dash_exit(char **);
-int dash_mkdir(char **);
-int dash_pwd(char **);
+int dash_mkdir(char **);		//UNFINISHED not creating a dir at all
+int dash_pwd(char **);		
+int dash_tail(char **);			//UNFINISHED, prints whole file currently
+
+
+int dash_tail(char **args)
+{
+	FILE *fp;
+	int c;
+	if(args[0] != NULL && args[1] != NULL && strcmp(args[0], "tail") == 0)
+	{	
+		fp = fopen(args[1], "r");
+		if(!fp)
+			printf("dash: File not found\n");
+		else
+			//printf("\n");
+			while((c = getc(fp)) != EOF)
+			{
+				putchar(c);
+			}
+	}
+	fclose(fp);
+	return 1;
+}	
 
 
 int dash_pwd(char **args)
@@ -236,7 +258,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_pwd(args); 
+		status = dash_tail(args); 
 
 		//free(line);
 		//free(args);
