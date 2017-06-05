@@ -40,7 +40,7 @@ int dash_help(char **);
 int dash_tail(char **args)
 {
 	FILE *fp = NULL;
-	int c;
+	int c, pos;
 	if(args[0] != NULL && args[1] != NULL && strcmp(args[0], "tail") == 0)
 	{	
 		fp = fopen(args[1], "r");
@@ -49,11 +49,17 @@ int dash_tail(char **args)
 			printf("%sdash: File not found\n", RED);
 		}
 		else
+		{
+			fseek(fp, -50, SEEK_END);
+			pos = ftell(fp);
+			//printf("%d\n", pos);
+			//fseek(fp, SEEK_END-10, SEEK_END);
 			//printf("\n");
 			while((c = getc(fp)) != EOF)
 			{
 				putchar(c);
 			}
+		}
 	}
 	fclose(fp);
 	return 1;
@@ -141,7 +147,8 @@ void get_dir(char *state)
 	if(getcwd(cwd, sizeof(cwd)) != NULL)
 	{
 		if(strcmp(state, "loop") == 0)
-			printf("%s[ %s%s %s]%s ", RED, CYAN, cwd, RED, RESET); 	//change colors back to def
+			printf("[%s] ", cwd);
+			//printf("%s[ %s%s %s]%s ", RED, CYAN, cwd, RED, RESET); 	//change colors back to def
 		else if(strcmp(state, "pwd") == 0)
 			printf("%s\n", cwd);
 	}
@@ -275,7 +282,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_pwd(args); 
+		status = dash_tail(args); 
 
 		//free(line);
 		//free(args);
