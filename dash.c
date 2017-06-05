@@ -11,29 +11,43 @@
 #define TK_BUFF_SIZE 64
 #define TOK_DELIM " \t\r\n\a"
 
+
+//ANSI Color codes
+#define RED   		"\033[0;31m"
+#define YELLOW 		"\033[0;33m"
+#define CYAN 		"\033[0;36m"
+#define GREEN 		"\033[0;32m"
+#define BLUE 		"\033[0;34m"
+#define RESET  		"\033[0m" 
+
+
 //function declarations
 void printtokens(char **);
-void get_dir();
-int dash_cd(char **);
+void get_dir(char *);
 char **split_line(char *);
 char *read_line();
+int dash_cd(char **);
 int dash_echo(char **);
 int dash_ls(char **);
 int dash_exit(char **);
 int dash_mkdir(char **);		//UNFINISHED not creating a dir at all
 int dash_pwd(char **);		
 int dash_tail(char **);			//UNFINISHED, prints whole file currently
+int dash_help(char **);
 
 
+//Function definitions
 int dash_tail(char **args)
 {
-	FILE *fp;
+	FILE *fp = NULL;
 	int c;
 	if(args[0] != NULL && args[1] != NULL && strcmp(args[0], "tail") == 0)
 	{	
 		fp = fopen(args[1], "r");
 		if(!fp)
-			printf("dash: File not found\n");
+		{	
+			printf("%sdash: File not found\n", RED);
+		}
 		else
 			//printf("\n");
 			while((c = getc(fp)) != EOF)
@@ -49,10 +63,7 @@ int dash_tail(char **args)
 int dash_pwd(char **args)
 {
 	if(args[0] != NULL && strcmp(args[0], "pwd") == 0)
-	{
-		get_dir();
-		printf("\n");
-	}
+		get_dir("pwd");	
 	else
 		printf("dash: '%s' not a valid command\n", args[0]);
 	return 1;
@@ -96,20 +107,20 @@ int dash_ls(char **args)
 	DIR *dirReader = opendir(".");
 
 	if(!dirReader)
-		printf("dash: unable to list directory\n");
+		printf("%sdash: unable to list directory\n", RED);
 
 	while((dirPointer = readdir(dirReader)) != NULL)
 		printf("%s\n", dirPointer->d_name);
 
 	closedir(dirReader);
-	return EXIT_SUCCESS;
+	return 1;
 }
 	
 int dash_echo(char **args)
 {
 	if(args[1] == NULL)
 	{
-		fprintf(stderr, "dash: Please enter an argument to echo\n");
+		fprintf(stderr, "%sdash: Please enter an argument to echo%s\n", YELLOW, RESET);
 	}
 	else if(strcmp(args[0], "echo") == 0)	//move these checks  to another func later on
 	{
@@ -124,15 +135,20 @@ int dash_echo(char **args)
 	return 1;
 }
 
-void get_dir()
+void get_dir(char *state)
 {
 	char cwd[1024];
-	if(getcwd(cwd, sizeof(cwd))  != NULL)
+	if(getcwd(cwd, sizeof(cwd)) != NULL)
 	{
-		printf("[%s] ", cwd);
+		if(strcmp(state, "loop") == 0)
+			printf("%s[ %s%s %s]%s ", RED, CYAN, cwd, RED, RESET); 	//change colors back to def
+		else if(strcmp(state, "pwd") == 0)
+			printf("%s\n", cwd);
 	}
 	else
-		printf("getcwd() error");
+	{
+		printf("%sgetcwd() error%s", RED, RESET);
+	}
 }
 
 
@@ -141,7 +157,7 @@ int dash_cd(char **args)
 	//get_dir();
 	if(args[1] == NULL)
 	{
-		fprintf(stderr, "dash: Please enter a path to cd\n");
+		fprintf(stderr, "%sdash: Please enter a path to cd%s\n", YELLOW, RESET);
 	}
 	else if(strcmp(args[0], "cd") == 0)	//move this check to another func later on
 	{
@@ -162,7 +178,7 @@ char **split_line(char *line)
 
 	if(!tokens)
 	{
-		fprintf(stderr, "allocation erro\n");	
+		fprintf(stderr, "%sdash: Allocation error%s\n", RED, RESET);	
 		exit(EXIT_FAILURE);
 	}
 	token = strtok(line, TOK_DELIM);
@@ -178,7 +194,7 @@ char **split_line(char *line)
 
 			if(!tokens)
 			{
-				fprintf(stderr, "allocation error\n");
+				fprintf(stderr, "%sdash: Allocation error%s\n", RED, RESET);
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -211,7 +227,7 @@ char *read_line()
 
 	if(!buffer)
 	{
-		fprintf(stderr, "allocation error");
+		fprintf(stderr, "%sdash: Allocation error%s\n", RED, RESET);
 		exit(EXIT_FAILURE);
 	}
 
@@ -238,7 +254,7 @@ char *read_line()
 
 			if(!buffer)
 			{
-				fprintf(stderr, "allocation error");
+				fprintf(stderr, "%sdash: Allocation error%s\n", RED, RESET);
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -253,12 +269,13 @@ void loop()
 	int status=1;
 
 	do{
-		get_dir();
-		printf("> ");
+		get_dir("loop");
+		printf("%s>%s ", CYAN, RESET);
+		//printf("> ");
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_tail(args); 
+		status = dash_pwd(args); 
 
 		//free(line);
 		//free(args);
