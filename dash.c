@@ -50,10 +50,11 @@ int dash_head(char **args)
 		else
 		{
 			 //fseek(fp, SEEK_SET, 50);
-	 		 while((c = getc(fp)) != EOF && i < 100)
+	 		 while((c = getc(fp)) != EOF && i < 10)
 			 {
 				 putchar(c);
-				 i++;
+				 if(c == '\n')
+					 i++;	
 			 }		 
 		}
 		fclose(fp);
@@ -65,7 +66,7 @@ int dash_head(char **args)
 int dash_tail(char **args)
 {
 	FILE *fp = NULL;
-	int c;
+	int c, i=0;
 	if(args[0] != NULL && args[1] != NULL && strcmp(args[0], "tail") == 0)
 	{	
 		fp = fopen(args[1], "r");
@@ -75,14 +76,16 @@ int dash_tail(char **args)
 		}
 		else
 		{
-			fseek(fp, -50, SEEK_END);
+			fseek(fp, -150, SEEK_END);
 			//pos = ftell(fp);
 			//printf("%d\n", pos);
 			//fseek(fp, SEEK_END-10, SEEK_END);
 			//printf("\n");
-			while((c = getc(fp)) != EOF)
+			while((c = getc(fp)) != EOF && i < 10)
 			{
 				putchar(c);
+				if(c == '\n')
+					i++;
 			}
 		}
 		fclose(fp);
@@ -307,7 +310,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_head(args); 
+		status = dash_tail(args); 
 
 		//free(line);
 		//free(args);
