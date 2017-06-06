@@ -35,8 +35,31 @@ int dash_pwd(char **);
 int dash_tail(char **);			//UNFINISHED, prints whole file currently
 int dash_help(char **);
 int dash_head(char **);
+int dash_cat(char **args);
 
 //Function definitions
+
+
+int dash_cat(char **args)
+{
+	FILE *fp = NULL;
+	int c;
+	if(args[0] != NULL && args[1] != NULL && strcmp(args[0], "cat") == 0)
+	{
+		fp = fopen(args[1], "r");
+		if(!fp)
+			fprintf(stderr, "%sdash: File not found%s\n", RED, RESET);
+		else
+		{
+			while((c = getc(fp)) != EOF)
+			{
+				putchar(c);
+			}
+		}
+		fclose(fp);
+	}
+	return 1;
+}
 
 int dash_head(char **args)
 {
@@ -61,7 +84,6 @@ int dash_head(char **args)
 	}	
 	return 1;
 }
-
 
 int dash_tail(char **args)
 {
@@ -310,7 +332,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_tail(args); 
+		status = dash_cat(args); 
 
 		//free(line);
 		//free(args);
