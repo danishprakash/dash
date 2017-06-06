@@ -34,24 +34,49 @@ int dash_mkdir(char **);		//UNFINISHED not creating a dir at all
 int dash_pwd(char **);		
 int dash_tail(char **);			//UNFINISHED, prints whole file currently
 int dash_help(char **);
-
+int dash_head(char **);
 
 //Function definitions
+
+int dash_head(char **args)
+{
+	FILE *fp = NULL;
+	int c, i=0;
+	if(args[0] != NULL && args[1] != NULL && strcmp(args[0], "head") == 0)
+	{
+		fp = fopen(args[1], "r");
+		if(!fp)
+			printf("%sdash: File not found%s\n", RED,RESET);		
+		else
+		{
+			 //fseek(fp, SEEK_SET, 50);
+	 		 while((c = getc(fp)) != EOF && i < 100)
+			 {
+				 putchar(c);
+				 i++;
+			 }		 
+		}
+		fclose(fp);
+	}	
+	return 1;
+}
+
+
 int dash_tail(char **args)
 {
 	FILE *fp = NULL;
-	int c, pos;
+	int c;
 	if(args[0] != NULL && args[1] != NULL && strcmp(args[0], "tail") == 0)
 	{	
 		fp = fopen(args[1], "r");
 		if(!fp)
 		{	
-			printf("%sdash: File not found\n", RED);
+			printf("%sdash: File not found%s\n", RED, RESET);
 		}
 		else
 		{
 			fseek(fp, -50, SEEK_END);
-			pos = ftell(fp);
+			//pos = ftell(fp);
 			//printf("%d\n", pos);
 			//fseek(fp, SEEK_END-10, SEEK_END);
 			//printf("\n");
@@ -60,8 +85,8 @@ int dash_tail(char **args)
 				putchar(c);
 			}
 		}
+		fclose(fp);
 	}
-	fclose(fp);
 	return 1;
 }	
 
@@ -282,7 +307,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_tail(args); 
+		status = dash_head(args); 
 
 		//free(line);
 		//free(args);
