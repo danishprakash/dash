@@ -32,13 +32,32 @@ int dash_ls(char **);
 int dash_exit(char **);
 int dash_mkdir(char **);		//UNFINISHED not creating a dir at all
 int dash_pwd(char **);		
-int dash_tail(char **);			//UNFINISHED, prints whole file currently
+int dash_tail(char **);			
 int dash_help(char **);
 int dash_head(char **);
-int dash_cat(char **args);
-
+int dash_cat(char **);
+int dash_touch(char **);
 //Function definitions
 
+
+int dash_touch(char **args)
+{
+	FILE *fp;
+	if(args[0] != NULL && strcmp(args[0], "touch") == 0)
+	{
+		if(args[1] == NULL)
+		{
+			printf("%sdash: 'touch' requires an argument%s\n", RED, RESET);
+
+			return 1;
+		}
+		else
+		{
+			fp = fopen(args[1], "w");
+			return 1;
+		}
+	}
+}
 
 int dash_cat(char **args)
 {
@@ -48,7 +67,10 @@ int dash_cat(char **args)
 	{
 		fp = fopen(args[1], "r");
 		if(!fp)
+		{
 			fprintf(stderr, "%sdash: File not found%s\n", RED, RESET);
+			return 1;
+		}
 		else
 		{
 			while((c = getc(fp)) != EOF)
@@ -65,11 +87,20 @@ int dash_head(char **args)
 {
 	FILE *fp = NULL;
 	int c, i=0;
-	if(args[0] != NULL && args[1] != NULL && strcmp(args[0], "head") == 0)
+	if(args[0] != NULL && strcmp(args[0], "head") == 0)
 	{
-		fp = fopen(args[1], "r");
+		if(args[1] == NULL)
+		{
+			printf("%sdash: 'head' requires an argument%s\n", RED, RESET);
+			return 1;
+		}
+		else
+			fp = fopen(args[1], "r");
 		if(!fp)
+		{
 			printf("%sdash: File not found%s\n", RED,RESET);		
+			return 1;
+		}
 		else
 		{
 			 //fseek(fp, SEEK_SET, 50);
@@ -81,7 +112,7 @@ int dash_head(char **args)
 			 }		 
 		}
 		fclose(fp);
-	}	
+	}
 	return 1;
 }
 
@@ -332,7 +363,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_cat(args); 
+		status = dash_touch(args); 
 
 		//free(line);
 		//free(args);
