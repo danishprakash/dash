@@ -49,14 +49,16 @@ int dash_touch(char **args)
 		{
 			printf("%sdash: 'touch' requires an argument%s\n", RED, RESET);
 
-			return 1;
+			//return 1;
 		}
 		else
 		{
 			fp = fopen(args[1], "w");
-			return 1;
+			fclose(fp);
+			//return 1;
 		}
 	}
+	return 1;
 }
 
 int dash_cat(char **args)
