@@ -13,10 +13,9 @@
 
 
 //ANSI Color codes
-#define RED   		"\033[1;31m"
+#define RED   		"\033[0;31m"
 #define YELLOW 		"\033[0;33m"
 #define CYAN 		"\033[0;36m"
-#define CYANBOLD 	"\033[1;36m"
 #define GREEN 		"\033[0;32m"
 #define BLUE 		"\033[0;34m"
 #define RESET  		"\e[0m" 
@@ -38,16 +37,48 @@ int dash_exit(char **);
 int dash_mkdir(char **);		//UNFINISHED not creating a dir at all
 int dash_pwd(char **);		
 int dash_tail(char **);			
+int dash_help(char **);
 int dash_head(char **);
 int dash_cat(char **);
 int dash_touch(char **);
 int dash_help(char **);
-
+int dash_grep(char **);
 
 
 /*
  * Function definitions *
 */
+
+int dash_grep(char **args)
+{
+	FILE *fp = NULL;
+	int flag = 0;
+	char temp[512];
+	if(args[0] != NULL && strcmp(args[0], "grep") == 0)
+	{
+		if(args[1] != NULL && args[2] != NULL)
+		{
+			fp = fopen(args[2], "r");
+			while((fgets(temp, 512, fp)) != NULL)
+			{
+				if(strstr(temp, args[1]))
+				{
+					printf("%s", temp);
+					flag = 1;
+				}
+			}
+			fclose(fp);
+		}
+		else
+		{
+			fprintf(stderr, RED "dash: grep requires two params, " ITALICS "PATTERN" RESET RED " and " RED ITALICS "FILE" RESET "\n");
+		}
+	}
+	if(flag == 0)
+		printf(ITALICS "No matches were found" RESET "\n");
+	return 1;
+}
+
 
 int dash_help(char **args)
 {
@@ -57,8 +88,6 @@ int dash_help(char **args)
 	}
 	return 1;
 }
-			
-		
 
 int dash_touch(char **args)
 {
@@ -126,7 +155,7 @@ int dash_head(char **args)
 		else
 		{
 			 //fseek(fp, SEEK_SET, 50);
-	 		 while((c = getc(fp)) != EOF && i < 10)
+	 		 while((c = getc(fp)) != EOF || i < 10)
 			 {
 				 putchar(c);
 				 if(c == '\n')
@@ -385,7 +414,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_help(args); 
+		status = dash_grep(args); 
 
 		//free(line);
 		//free(args);
