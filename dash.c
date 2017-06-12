@@ -13,15 +13,20 @@
 
 
 //ANSI Color codes
-#define RED   		"\033[0;31m"
+#define RED   		"\033[1;31m"
 #define YELLOW 		"\033[0;33m"
 #define CYAN 		"\033[0;36m"
+#define CYANBOLD 	"\033[1;36m"
 #define GREEN 		"\033[0;32m"
 #define BLUE 		"\033[0;34m"
-#define RESET  		"\033[0m" 
+#define RESET  		"\e[0m" 
+#define BOLD		"\e[1m"
+#define ITALICS		"\e[3m"
 
+/*
+ * function declarations *
+*/
 
-//function declarations
 void printtokens(char **);
 void get_dir(char *);
 char **split_line(char *);
@@ -33,12 +38,27 @@ int dash_exit(char **);
 int dash_mkdir(char **);		//UNFINISHED not creating a dir at all
 int dash_pwd(char **);		
 int dash_tail(char **);			
-int dash_help(char **);
 int dash_head(char **);
 int dash_cat(char **);
 int dash_touch(char **);
-//Function definitions
+int dash_help(char **);
 
+
+
+/*
+ * Function definitions *
+*/
+
+int dash_help(char **args)
+{
+	if(args[0] != NULL && strcmp(args[0], "help") == 0)
+	{
+		fprintf(stderr,"\n------\n" BOLD "\ndash " RESET "is a basic unix terminal shell written purely in C developed by Danish Prakash\n\nSupported Commands:\n1. " ITALICS "cd" RESET "\n2. " ITALICS "exit" RESET "\n3. " ITALICS "help" RESET "\n4. " ITALICS "touch" RESET "\n5. " ITALICS "cat" RESET "\n\n------\n\n");
+	}
+	return 1;
+}
+			
+		
 
 int dash_touch(char **args)
 {
@@ -47,7 +67,7 @@ int dash_touch(char **args)
 	{
 		if(args[1] == NULL)
 		{
-			printf("%sdash: 'touch' requires an argument%s\n", RED, RESET);
+			printf(RED "dash: 'touch' requires an argument" RESET "\n");
 
 			//return 1;
 		}
@@ -365,7 +385,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_touch(args); 
+		status = dash_help(args); 
 
 		//free(line);
 		//free(args);
