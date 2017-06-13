@@ -5,7 +5,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-
+#include <fcntl.h>
 
 #define RL_BUFF_SIZE 1024
 #define TK_BUFF_SIZE 64
@@ -22,9 +22,12 @@
 #define BOLD		"\e[1m"
 #define ITALICS		"\e[3m"
 
-/*
+
+
+
+/*****************************
  * function declarations *
-*/
+******************************/
 
 void printtokens(char **);
 void get_dir(char *);
@@ -43,11 +46,33 @@ int dash_cat(char **);
 int dash_touch(char **);
 int dash_help(char **);
 int dash_grep(char **);
+int dash_file(char **);			//file name and file size
 
 
-/*
- * Function definitions *
-*/
+
+
+/*****************************
+ * function definitions *
+******************************/
+
+int dash_file(char **args)
+{
+	int fp=0;
+	struct stat st;
+	if(args[1] != NULL && strcmp(args[0], "file") == 0)
+	{	
+		fp = open(args[1], O_RDONLY);
+		if(fstat(fp, &st) > -1)
+		{
+			printf("Name:\t%s\nSize:\t%ld bytes\n", args[1], st.st_size);
+		}	
+		else
+			printf( RED BOLD "dash: unable to access file" RESET "\n");
+		close(fp);
+	}
+	return 1;
+}
+
 
 int dash_grep(char **args)
 {
@@ -414,7 +439,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_grep(args); 
+		status = dash_file(args); 
 
 		//free(line);
 		//free(args);
