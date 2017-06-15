@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <sys/wait.h>
 
 #define RL_BUFF_SIZE 1024
 #define TK_BUFF_SIZE 64
@@ -47,13 +48,37 @@ int dash_touch(char **);
 int dash_help(char **);
 int dash_grep(char **);
 int dash_file(char **);			//file name and file size
-
+int dash_launch(char **);
 
 
 
 /*****************************
  * function definitions *
 ******************************/
+
+int dash_launch(char **args)
+{
+	pid_t cpid;//, ppid;
+	int status;
+	cpid = fork();
+
+	if(cpid == 0)
+	{
+		if(execvp(args[0], args) == -1)
+			perror(RED "dash: " RESET);
+		return 0;
+	}
+	else if(cpid < 0)
+		printf(RED "Error forking" RESET "\n");
+	else
+	{
+		//parent process
+		waitpid(cpid, &status, WUNTRACED);
+	}
+
+	return 1;
+
+}
 
 int dash_file(char **args)
 {
@@ -439,7 +464,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		status = dash_file(args); 
+		status = dash_launch(args); 
 
 		//free(line);
 		//free(args);
