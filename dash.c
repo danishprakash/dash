@@ -38,7 +38,6 @@ int dash_cd(char **);
 int dash_echo(char **);
 int dash_ls(char **);
 int dash_exit(char **);
-int dash_mkdir(char **);		//UNFINISHED not creating a dir at all
 int dash_pwd(char **);		
 int dash_tail(char **);			
 int dash_help(char **);
@@ -49,21 +48,38 @@ int dash_help(char **);
 int dash_grep(char **);
 int dash_file(char **);			//file name and file size
 int dash_launch(char **);
+int dash_execute(char **);
 
 
 
-/*****************************
+int (*builtin_funcs[])(char **) = { &dash_cd, &dash_help, &dash_exit };
+char *builtin_str[] = { "cd", "help", "exit" };
+int builtin_funcs_count()
+{
+	return sizeof(builtin_str) / sizeof(char *);
+}
+
+
+
+/*-----------------------------
  * function definitions *
-******************************/
+-------------------------------*/
 
-int dash_launch(char **args)
+
+
+/***************************************************************************** 
+ * Executes the system call execvp with the tokenized user input as argument
+ * the execvp() call takes place in a child process
+ * the parent waits until the child has finished processing
+ *****************************************************************************/
+int dash_execute(char **args)
 {
 	pid_t cpid;//, ppid;
 	int status;
 	cpid = fork();
 
 	if(cpid == 0)
-	{
+	{	
 		if(execvp(args[0], args) == -1)
 			perror(RED "dash: " RESET);
 		return 0;
@@ -75,10 +91,35 @@ int dash_launch(char **args)
 		//parent process
 		waitpid(cpid, &status, WUNTRACED);
 	}
-
 	return 1;
 
 }
+
+
+/****************************************************************
+ * Checks if the command entered by user is a builtin or not
+ * and if it is, then invoke the required builtin functions
+ * and if it not, then invoke the execute() method which in turn
+ * will execute the systemcall execvp(args)
+ ****************************************************************/
+
+int dash_launch(char **args)
+{
+	int i = 0;
+	if(args[0] == NULL)
+		return 1;
+	for(i = 0; i<builtin_funcs_count(); i++)
+	{
+		if(strcmp(args[0], builtin_str[i]) == 0)
+		{
+			//printf("inside for>if\n");
+			return (*builtin_funcs[i])(args);	
+		}
+	}
+	return dash_execute(args);
+
+}
+
 
 int dash_file(char **args)
 {
@@ -258,35 +299,17 @@ int dash_pwd(char **args)
 }
 		
 
-
-int dash_mkdir(char **args)
-{
-	
-	struct stat st = {0};
-	//char *dirname = strcat("/", "b");
-	char *dirname = "~/programming/dash/test";
-	printf("**%s**", args[1]);
-	if(args[0] != NULL && strcmp(args[0], "mkdir") == 0)
-	{
-
-		if(stat(dirname, &st) == -1)
-		{
-			mkdir(dirname, 0777);
-		}
-	}
-	return 1;
-}
-
-
 int dash_exit(char **args)
 {
-	if(args[0] != NULL && strcmp(args[0], "exit") == 0)
-		return 0;
-	else
-	{
-		printf("dash: '%s' not a valid command\n", args[0]);
-		return 1;
-	}
+
+	return 0;
+//	if(args[0] != NULL && strcmp(args[0], "exit") == 0)
+//		return 0;
+//	else
+//	{
+//		printf("dash: '%s' not a valid command\n", args[0]);
+//		return 1;
+//	}
 }
 
 int dash_ls(char **args)
@@ -329,7 +352,7 @@ void get_dir(char *state)
 	if(getcwd(cwd, sizeof(cwd)) != NULL)
 	{
 		if(strcmp(state, "loop") == 0)
-			printf("[%s] ", cwd);
+			printf(RED "[ " RESET CYAN "%s" RESET RED " ] " RESET, cwd);
 			//printf("%s[ %s%s %s]%s ", RED, CYAN, cwd, RED, RESET); 	//change colors back to def
 		else if(strcmp(state, "pwd") == 0)
 			printf("%s\n", cwd);
@@ -343,6 +366,7 @@ void get_dir(char *state)
 
 int dash_cd(char **args)
 {
+	printf(YELLOW "OWN" RESET "\n");
 	//get_dir();
 	if(args[1] == NULL)
 	{
@@ -450,7 +474,9 @@ char *read_line()
 	}
 }
 
-
+/******************* 
+ * driving function
+********************/
 void loop()
 {
 	char *line;
