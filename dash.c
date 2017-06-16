@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <signal.h>
+
 
 #define RL_BUFF_SIZE 1024
 #define TK_BUFF_SIZE 64
@@ -25,13 +27,13 @@
 
 
 
-
 /*****************************
  * function declarations *
 ******************************/
 
 void printtokens(char **);
 void get_dir(char *);
+void signalHandler();
 char **split_line(char *);
 char *read_line();
 int dash_cd(char **);
@@ -49,9 +51,14 @@ int dash_grep(char **);
 int dash_file(char **);			//file name and file size
 int dash_launch(char **);
 int dash_execute(char **);
+int history_line_count(FILE *);
 
 
-
+/******************************************************************************************
+ * The builtin commands of the shell, the first line consists of an array of func pointers
+ * Second line consists of a char array of the builtin command func names
+ * Third line return the current size of the char array in the second line
+ ******************************************************************************************/
 int (*builtin_funcs[])(char **) = { &dash_cd, &dash_help, &dash_exit };
 char *builtin_str[] = { "cd", "help", "exit" };
 int builtin_funcs_count()
@@ -65,6 +72,36 @@ int builtin_funcs_count()
  * function definitions *
 -------------------------------*/
 
+int history_line_count(FILE *fp)
+{
+	int c;
+	int numOfLines = 0;
+	do
+	{
+		printf("INSIDE\n");
+		c = fgetc(fp);
+		if(c == '\n')
+		{
+			numOfLines++;
+			printf("Inside if\n");
+		}
+	}while(c != EOF);
+	return numOfLines;
+}
+
+
+
+
+
+/*******************************************************************
+ * This func allows the shell to catch Ctrl-c and not exit it until
+ * the exit command is entered explicitly
+ *******************************************************************/
+void signalHandler()
+{
+	signal(SIGINT, signalHandler);
+	getchar();
+}
 
 
 /***************************************************************************** 
@@ -88,6 +125,8 @@ int dash_execute(char **args)
 		printf(RED "Error forking" RESET "\n");
 	else
 	{
+		if(tcsetpgrp(STDOUT_FILENO, getpid()) < 0) 	//setting the current process in the
+			perror("tcgetpgrp() error\n");		//child process the foreground process
 		//parent process
 		waitpid(cpid, &status, WUNTRACED);
 	}
@@ -105,9 +144,23 @@ int dash_execute(char **args)
 
 int dash_launch(char **args)
 {
-	int i = 0;
+	FILE *history_file = NULL;
+	int i = 0, j = 0;
 	if(args[0] == NULL)
 		return 1;
+	else
+	{
+		history_file = fopen(".dash_history", "a");
+		j = 0;
+		fprintf(history_file, "%d. ", history_line_count(history_file));	
+		while(args[j] != NULL)
+		{
+			fputs(args[j], history_file);
+			j++;
+		}
+		fputs("\n", history_file);
+		fclose(history_file);
+	}
 	for(i = 0; i<builtin_funcs_count(); i++)
 	{
 		if(strcmp(args[0], builtin_str[i]) == 0)
@@ -175,7 +228,10 @@ int dash_help(char **args)
 {
 	if(args[0] != NULL && strcmp(args[0], "help") == 0)
 	{
-		fprintf(stderr,"\n------\n" BOLD "\ndash " RESET "is a basic unix terminal shell written purely in C developed by Danish Prakash\n\nSupported Commands:\n1. " ITALICS "cd" RESET "\n2. " ITALICS "exit" RESET "\n3. " ITALICS "help" RESET "\n4. " ITALICS "touch" RESET "\n5. " ITALICS "cat" RESET "\n\n------\n\n");
+		fprintf(stderr,"\n------\n" 
+				BOLD "\ndash " RESET "is a basic unix terminal shell written purely in C developed by Danish Prakash\n"
+				"\nSupported Commands:\n1. " ITALICS "cd" RESET "\n2. " ITALICS "exit" RESET "\n3. " ITALICS "help" RESET "\n4. " ITALICS "touch" RESET "\n5. " ITALICS "cat" RESET 
+				"\n\n------\n\n");
 	}
 	return 1;
 }
@@ -482,6 +538,8 @@ void loop()
 	char *line;
 	char **args;
 	int status=1;
+	
+	//signal(SIGINT, signalHandler);
 
 	do{
 		get_dir("loop");
