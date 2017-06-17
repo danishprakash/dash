@@ -51,7 +51,7 @@ int dash_grep(char **);
 int dash_file(char **);			//file name and file size
 int dash_launch(char **);
 int dash_execute(char **);
-int history_line_count(FILE *);
+int history_line_count();
 
 
 /******************************************************************************************
@@ -72,18 +72,17 @@ int builtin_funcs_count()
  * function definitions *
 -------------------------------*/
 
-int history_line_count(FILE *fp)
+int history_line_count()
 {
+	FILE *fp = fopen(".dash_history", "r");
 	int c;
-	int numOfLines = 0;
+	int numOfLines = 1;
 	do
-	{
-		printf("INSIDE\n");
-		c = fgetc(fp);
+	{	
+		c = getc(fp);
 		if(c == '\n')
 		{
-			numOfLines++;
-			printf("Inside if\n");
+			numOfLines++;	
 		}
 	}while(c != EOF);
 	return numOfLines;
@@ -150,11 +149,13 @@ int dash_launch(char **args)
 		return 1;
 	else
 	{
-		history_file = fopen(".dash_history", "a");
+		history_file = fopen(".dash_history", "a+");
 		j = 0;
-		fprintf(history_file, "%d. ", history_line_count(history_file));	
+		fprintf(history_file, "%d. ", history_line_count());
 		while(args[j] != NULL)
 		{
+			if(j > 0)
+				fputs(" ", history_file);
 			fputs(args[j], history_file);
 			j++;
 		}
