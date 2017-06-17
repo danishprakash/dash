@@ -52,15 +52,15 @@ int dash_file(char **);			//file name and file size
 int dash_launch(char **);
 int dash_execute(char **);
 int history_line_count();
-
+int dash_history();
 
 /******************************************************************************************
  * The builtin commands of the shell, the first line consists of an array of func pointers
  * Second line consists of a char array of the builtin command func names
  * Third line return the current size of the char array in the second line
  ******************************************************************************************/
-int (*builtin_funcs[])(char **) = { &dash_cd, &dash_help, &dash_exit };
-char *builtin_str[] = { "cd", "help", "exit" };
+int (*builtin_funcs[])(char **) = { &dash_cd, &dash_help, &dash_exit, &dash_history };
+char *builtin_str[] = { "cd", "help", "exit" , "history" };
 int builtin_funcs_count()
 {
 	return sizeof(builtin_str) / sizeof(char *);
@@ -72,9 +72,39 @@ int builtin_funcs_count()
  * function definitions *
 -------------------------------*/
 
+char *get_hist_file_path()
+{
+	char *home_dir = getenv("HOME");
+	char *fname = "/.dash_history";
+	char *file_path = malloc(strlen(home_dir)+1);
+	file_path = realloc(file_path, strlen(fname));
+	strcpy(file_path, home_dir);
+	strcpy(file_path, fname);
+
+	return file_path;
+}
+
+int dash_history()
+{
+	FILE *fp = fopen(get_hist_file_path(), "r");
+	int c;
+	if(!fp)
+		fprintf(stderr, RED "dash: file not found" RESET "\n");
+	else
+	{
+		while((c = getc(fp)) != EOF)
+		{
+			putchar(c);
+		}
+	}
+	fclose(fp);
+	return 1;
+}
+			
+
 int history_line_count()
 {
-	FILE *fp = fopen(".dash_history", "r");
+	FILE *fp = fopen(get_hist_file_path(), "r");
 	int c;
 	int numOfLines = 1;
 	do
@@ -149,7 +179,7 @@ int dash_launch(char **args)
 		return 1;
 	else
 	{
-		history_file = fopen(".dash_history", "a+");
+		history_file = fopen(get_hist_file_path(), "a+");
 		j = 0;
 		fprintf(history_file, "%d. ", history_line_count());
 		while(args[j] != NULL)
