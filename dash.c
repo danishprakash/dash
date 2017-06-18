@@ -54,13 +54,13 @@ int dash_execute(char **);
 int history_line_count();
 int dash_history();
 
-/******************************************************************************************
- * The builtin commands of the shell, the first line consists of an array of func pointers
- * Second line consists of a char array of the builtin command func names
- * Third line return the current size of the char array in the second line
- ******************************************************************************************/
+/* array of builtin function pointers */
 int (*builtin_funcs[])(char **) = { &dash_cd, &dash_help, &dash_exit, &dash_history };
+
+/* string array of builtin commands for strcmp() before invoking execvp() */
 char *builtin_str[] = { "cd", "help", "exit" , "history" };
+
+/* return the size of the builtin array */
 int builtin_funcs_count()
 {
 	return sizeof(builtin_str) / sizeof(char *);
@@ -87,7 +87,8 @@ char *get_hist_file_path()
 int dash_history()
 {
 	FILE *fp = fopen(get_hist_file_path(), "r");
-	int c;
+	int ch, c, i=0, line_num = 1;
+	char line[128];
 	if(!fp)
 		fprintf(stderr, RED "dash: file not found" RESET "\n");
 	else
@@ -97,6 +98,28 @@ int dash_history()
 			putchar(c);
 		}
 	}
+	scanf("%d", &ch);
+	fseek(fp, 0, SEEK_SET);
+	if (ch == 'q' || ch == 'Q')
+		return 1;
+	else
+	{
+		
+	   	while((fgets(line, 128, fp)) != NULL)
+	   	{
+			//printf("%d %d\n", ch ,line_num);
+			if(line_num == ch)
+			{
+				//printf("inside if\n");
+				puts(line);
+				return 1;	
+			}
+			else
+				line_num++;
+				
+	   	}
+	}
+
 	fclose(fp);
 	return 1;
 }
