@@ -86,11 +86,19 @@ char *get_hist_file_path()
 	return file_path;
 }
 
+
+
+/* shows user it's recent history of entered commands and waits for user input
+ * 
+ * q - exit
+ * line number - executes that particular command again from history */
 int dash_history()
 {
 	FILE *fp = fopen(get_hist_file_path(), "r");
 	int ch, c, i=0, line_num = 1;
 	char line[128];
+	char prev_comm[128];
+	char **args;
 	if(!fp)
 		fprintf(stderr, RED "dash: file not found" RESET "\n");
 	else
@@ -113,15 +121,17 @@ int dash_history()
 			if(line_num == ch)
 			{
 				//printf("inside if\n");
-				puts(line);
-				return 1;	
+				strcpy(prev_comm, &line[3]);
+//				printf("%s\n", prev_comm);
+				args = split_line(prev_comm);
+				return dash_launch(args);	
+	
 			}
 			else
 				line_num++;
 				
 	   	}
-	}
-	printf("outside else\n");
+	}	
 	fclose(fp);
 	return 1;
 }
@@ -175,7 +185,6 @@ int dash_execute(char **args)
 	{	
 		if(execvp(args[0], args) == -1)
 			perror(RED "dash: " RESET);
-		return 0;
 	}
 	else if(cpid < 0)
 		printf(RED "Error forking" RESET "\n");
@@ -202,15 +211,16 @@ int dash_launch(char **args)
 {
 	FILE *history_file = NULL;
 	int i = 0, j = 0;
+
 	if(args[0] == NULL)
 		return 1;
 	else
 	{
 //		char file_path[128];
 //		strcat(strcpy(file_path, getenv("HOME")), "/.dash_history");
-		printf("inside launch else\n");
+//		printf("inside launch else\n");
 		history_file = fopen(get_hist_file_path(), "a+");
-		printf("file opened\n");
+//		printf("file opened\n");
 		j = 0;
 //		printf("%s\n", file_path);
 		fprintf(history_file, "%d. ", history_line_count());
@@ -228,11 +238,11 @@ int dash_launch(char **args)
 	{
 		if(strcmp(args[0], builtin_str[i]) == 0)
 		{
-			printf("inside stcmp(builtin)\n");
+//			printf("inside stcmp(builtin)\n");
 			return (*builtin_funcs[i])(args);	
 		}
 	}
-	printf("end of launch\n");
+//	printf("end of launch\n");
 	return dash_execute(args);
 
 }
@@ -607,15 +617,15 @@ void loop()
 
 	do{
 		get_dir("loop");
-		printf("%s>%s ", CYAN, RESET);
+		printf(CYAN "> " RESET);
 		//printf("> ");
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
 		status = dash_launch(args); 
 
-		//free(line);
-		//free(args);
+		free(line);
+		free(args);
 	}while(status);
 }
 
