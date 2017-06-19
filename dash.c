@@ -74,12 +74,14 @@ int builtin_funcs_count()
 
 char *get_hist_file_path()
 {
-	char *home_dir = getenv("HOME");
-	char *fname = "/.dash_history";
-	char *file_path = malloc(strlen(home_dir)+1);
-	file_path = realloc(file_path, strlen(fname));
-	strcpy(file_path, home_dir);
-	strcpy(file_path, fname);
+	//char *home_dir = getenv("HOME");
+	//char *fname = "/.dash_history";
+	//char *file_path = malloc(strlen(home_dir)+1);
+	static char file_path[128];
+	strcat(strcpy(file_path, getenv("HOME")), "/.dash_history");
+//	file_path = realloc(file_path, strlen(fname));
+//	strcpy(file_path, home_dir);
+//	strcpy(file_path, fname);
 
 	return file_path;
 }
@@ -119,7 +121,7 @@ int dash_history()
 				
 	   	}
 	}
-
+	printf("outside else\n");
 	fclose(fp);
 	return 1;
 }
@@ -127,6 +129,8 @@ int dash_history()
 
 int history_line_count()
 {
+//	char file_path[128];
+//	strcat(strcpy(file_path, getenv("HOME")), "/.dash_history");
 	FILE *fp = fopen(get_hist_file_path(), "r");
 	int c;
 	int numOfLines = 1;
@@ -202,8 +206,13 @@ int dash_launch(char **args)
 		return 1;
 	else
 	{
+//		char file_path[128];
+//		strcat(strcpy(file_path, getenv("HOME")), "/.dash_history");
+		printf("inside launch else\n");
 		history_file = fopen(get_hist_file_path(), "a+");
+		printf("file opened\n");
 		j = 0;
+//		printf("%s\n", file_path);
 		fprintf(history_file, "%d. ", history_line_count());
 		while(args[j] != NULL)
 		{
@@ -219,10 +228,11 @@ int dash_launch(char **args)
 	{
 		if(strcmp(args[0], builtin_str[i]) == 0)
 		{
-			//printf("inside for>if\n");
+			printf("inside stcmp(builtin)\n");
 			return (*builtin_funcs[i])(args);	
 		}
 	}
+	printf("end of launch\n");
 	return dash_execute(args);
 
 }
