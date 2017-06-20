@@ -95,10 +95,11 @@ char *get_hist_file_path()
 int dash_history()
 {
 	FILE *fp = fopen(get_hist_file_path(), "r");
-	int ch, c, i=0, line_num = 1;
+	int ch, c, line_num = 1;
 	char line[128];
 	char prev_comm[128];
-	char **args;
+	char **args=NULL;
+	char *clr[2] = {"clear", NULL};
 	if(!fp)
 		fprintf(stderr, RED "dash: file not found" RESET "\n");
 	else
@@ -108,10 +109,14 @@ int dash_history()
 			putchar(c);
 		}
 	}
+	printf("\nq: Quit\tline number: Execute respective command\n");
 	scanf("%d", &ch);
 	fseek(fp, 0, SEEK_SET);
-	if (ch == 'q' || ch == 'Q')
-		return 1;
+	if (ch == 0)
+	{	
+		fclose(fp);
+		return dash_execute(clr);
+	}
 	else
 	{
 		
@@ -124,7 +129,8 @@ int dash_history()
 				strcpy(prev_comm, &line[3]);
 //				printf("%s\n", prev_comm);
 				args = split_line(prev_comm);
-				return dash_launch(args);	
+				fclose(fp);
+				return dash_execute(args);	
 	
 			}
 			else
@@ -178,22 +184,25 @@ void signalHandler()
 int dash_execute(char **args)
 {
 	pid_t cpid;//, ppid;
-	int status;
+//	int status;
 	cpid = fork();
 
 	if(cpid == 0)
 	{	
-		if(execvp(args[0], args) == -1)
+		if(execvp(args[0], args) < 0)
 			perror(RED "dash: " RESET);
 	}
 	else if(cpid < 0)
 		printf(RED "Error forking" RESET "\n");
 	else
 	{
-		if(tcsetpgrp(STDOUT_FILENO, getpid()) < 0) 	//setting the current process in the
-			perror("tcgetpgrp() error\n");		//child process the foreground process
+		do
+	{
 		//parent process
-		waitpid(cpid, &status, WUNTRACED);
+//		if(tcsetpgrp(STDOUT_FILENO, getpid()) < 0) 	//setting the current process in the
+//			perror("tcgetpgrp() error\n");		//child process the foreground process
+//			waitpid(cpid, &status, WUNTRACED);
+		}while(wait(NULL)>0);
 	}
 	return 1;
 
@@ -238,11 +247,11 @@ int dash_launch(char **args)
 	{
 		if(strcmp(args[0], builtin_str[i]) == 0)
 		{
-//			printf("inside stcmp(builtin)\n");
+			printf("inside stcmp(builtin)\n");
 			return (*builtin_funcs[i])(args);	
 		}
 	}
-//	printf("end of launch\n");
+	printf("end of launch\n");
 	return dash_execute(args);
 
 }
@@ -433,13 +442,6 @@ int dash_exit(char **args)
 {
 
 	return 0;
-//	if(args[0] != NULL && strcmp(args[0], "exit") == 0)
-//		return 0;
-//	else
-//	{
-//		printf("dash: '%s' not a valid command\n", args[0]);
-//		return 1;
-//	}
 }
 
 int dash_ls(char **args)
