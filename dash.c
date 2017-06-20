@@ -21,6 +21,7 @@
 #define CYAN 		"\033[0;36m"
 #define GREEN 		"\033[0;32m"
 #define BLUE 		"\033[0;34m"
+#define INVERT		"\033[0;7m"
 #define RESET  		"\e[0m" 
 #define BOLD		"\e[1m"
 #define ITALICS		"\e[3m"
@@ -109,7 +110,7 @@ int dash_history()
 			putchar(c);
 		}
 	}
-	printf("\nq: Quit\tline number: Execute respective command\n");
+	printf( "\n" INVERT " <0>: Quit    <line_number>: Execute respective command    <!>: clear history file " RESET "\n\n: ");
 	scanf("%d", &ch);
 	fseek(fp, 0, SEEK_SET);
 	if (ch == 0)
