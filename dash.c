@@ -110,7 +110,7 @@ int dash_history()
 			putchar(c);
 		}
 	}
-	printf( "\n" INVERT " <0>: Quit    <line_number>: Execute respective command    <!>: clear history file " RESET "\n\n: ");
+	printf( "\n" INVERT " <0>: Quit    <#line>: Execute respective command    <-1>: clear history file " RESET "\n\n: ");
 	scanf("%d", &ch);
 	fseek(fp, 0, SEEK_SET);
 	if (ch == 0)
@@ -118,6 +118,15 @@ int dash_history()
 		fclose(fp);
 		return dash_execute(clr);
 	}
+	else if(ch == -1)
+	{
+		fclose(fp);
+		fp = fopen(get_hist_file_path(), "w");
+		fprintf(fp, "");
+		fclose(fp);
+		return dash_execute(clr);
+	}
+
 	else
 	{
 		
@@ -223,7 +232,10 @@ int dash_launch(char **args)
 	int i = 0, j = 0;
 
 	if(args[0] == NULL)
+	{
+		printf("inside args null\n");
 		return 1;
+	}
 	else
 	{
 //		char file_path[128];
@@ -625,6 +637,7 @@ void loop()
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
+		printf("\nstatus loop\n");
 		status = dash_launch(args); 
 
 		free(line);
