@@ -14,6 +14,7 @@
 #define TK_BUFF_SIZE 64
 #define TOK_DELIM " \t\r\n\a"
 
+char *clr[2] = {"clear", NULL};
 
 //ANSI Color codes
 #define RED   		"\033[0;31m"
@@ -100,7 +101,7 @@ int dash_history()
 	char line[128];
 	char prev_comm[128];
 	char **args=NULL;
-	char *clr[2] = {"clear", NULL};
+	int len;
 	if(!fp)
 		fprintf(stderr, RED "dash: file not found" RESET "\n");
 	else
@@ -140,6 +141,9 @@ int dash_history()
 //				printf("%s\n", prev_comm);
 				args = split_line(prev_comm);
 				fclose(fp);
+				len = sizeof(args[0])-1;
+				printf("**len:%d, *args[len]:%s\n", len, args[len]);
+				//*args[len-1] = '\0';
 				return dash_execute(args);	
 	
 			}
@@ -200,14 +204,16 @@ int dash_execute(char **args)
 	if(cpid == 0)
 	{	
 		if(execvp(args[0], args) < 0)
-			perror(RED "dash: " RESET);
+			printf("dash: command not found: %s\n", args[0]); 
+			//perror(RED "dash: " RESET);
+		
 	}
 	else if(cpid < 0)
 		printf(RED "Error forking" RESET "\n");
 	else
 	{
 		do
-	{
+		{	
 		//parent process
 //		if(tcsetpgrp(STDOUT_FILENO, getpid()) < 0) 	//setting the current process in the
 //			perror("tcgetpgrp() error\n");		//child process the foreground process
@@ -236,8 +242,9 @@ int dash_launch(char **args)
 		printf("inside args null\n");
 		return 1;
 	}
-	else
+	else if(strcmp(args[0], "history") != 0)		//excluding the history command
 	{
+		printf("here with history\n");
 //		char file_path[128];
 //		strcat(strcpy(file_path, getenv("HOME")), "/.dash_history");
 //		printf("inside launch else\n");
@@ -575,6 +582,10 @@ void printtokens(char **tokens)
 	}
 }
 
+/*
+ * 
+ */
+
 
 char *read_line()
 {
@@ -621,6 +632,14 @@ char *read_line()
 
 /******************* 
  * driving function
+ * 
+ * status var controlled while loop
+ * every iteration first prints the prompt(cwd) 
+ * then proceeds to read user input using the func read_line()
+ * the input is then split into tokens using the split_line() func
+ * the returned stream of tokens are then passed onto the launch func
+ * which returns 0 or 1 depending upon the execution,
+ * the loop exits accordingly
 ********************/
 void loop()
 {
