@@ -57,10 +57,10 @@ int history_line_count();
 int dash_history();
 
 /* array of builtin function pointers */
-int (*builtin_funcs[])(char **) = { &dash_cd, &dash_help, &dash_exit, &dash_history };
+int (*builtin_funcs[])(char **) = { &dash_cd, &dash_help, &dash_exit, &dash_history, &dash_grep };
 
 /* string array of builtin commands for strcmp() before invoking execvp() */
-char *builtin_str[] = { "cd", "help", "exit" , "history" };
+char *builtin_str[] = { "cd", "help", "exit" , "history", "grep" };
 
 /* return the size of the builtin array */
 int builtin_funcs_count()
@@ -96,6 +96,7 @@ char *get_hist_file_path()
  * line number - executes that particular command again from history */
 int dash_history()
 {
+	printf("inside history\n");
 	FILE *fp = fopen(get_hist_file_path(), "r");
 	int ch, c, line_num = 1;
 	char line[128];
@@ -118,7 +119,7 @@ int dash_history()
 	{
 		printf("please enter a numerical choice\n");	
 	}
-	else if (ch == 0)
+	if (ch == 0)
 	{	
 		fclose(fp);
 		return dash_execute(clr);
@@ -132,7 +133,7 @@ int dash_history()
 		return dash_execute(clr);
 	}
 
-	else if(isdigit(ch))
+	else
 	{
 		
 	   	while((fgets(line, 128, fp)) != NULL)
@@ -156,7 +157,8 @@ int dash_history()
 				
 	   	}
 	}	
-	fclose(fp);
+	printf("end of history\n");
+	//fclose(fp);
 	return 1;
 }
 			
@@ -201,6 +203,7 @@ void signalHandler()
  *****************************************************************************/
 int dash_execute(char **args)
 {
+	printf("inside execute\n");
 	pid_t cpid, ppid;
 	int status;
 	cpid = fork();
@@ -218,15 +221,17 @@ int dash_execute(char **args)
 		printf(RED "Error forking" RESET "\n");
 	else
 	{    
-		do {
+		//do {
       			ppid = waitpid(cpid, &status, WUNTRACED);
-    		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    		//} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 //		do
 //		{	
 //			printf("inside parent\n");
 //		}while(wait(NULL)>0);
 //		return 1;
+		printf("end of parent\n");
 	}
+	printf("end of execute\n");
 	return 1;
 
 }
@@ -277,7 +282,7 @@ int dash_launch(char **args)
 		{
 			printf("inside stcmp(builtin)\n");
 			return (*builtin_funcs[i])(args);	
-			exit(EXIT_FAILURE);
+			//exit(EXIT_FAILURE);
 		}
 	}
 	printf("end of launch\n");
@@ -310,6 +315,7 @@ int dash_grep(char **args)
 	FILE *fp = NULL;
 	int flag = 0;
 	char temp[512];
+	int line_num = 1;
 	if(args[0] != NULL && strcmp(args[0], "grep") == 0)
 	{
 		if(args[1] != NULL && args[2] != NULL)
@@ -319,9 +325,10 @@ int dash_grep(char **args)
 			{
 				if(strstr(temp, args[1]))
 				{
-					printf("%s", temp);
+					printf("%d. %s", line_num, temp);
 					flag = 1;
 				}
+				line_num++;
 			}
 			fclose(fp);
 		}
@@ -659,15 +666,20 @@ void loop()
 	//signal(SIGINT, signalHandler);
 
 	do{
+
 		printf("status loop\n");
 		get_dir("loop");
 		printf(CYAN "> " RESET);
 		//printf("> ");
 		line = read_line();
 		args = split_line(line);
+		printf("**line:%s, args:%s \n", line, *args);
 		//status = execute();
-		status = dash_launch(args); 
-
+		if(strcmp(line, "") != 0)
+		{
+			printf("inside args !=  NULL\n");
+			status = dash_launch(args); 
+		}
 		free(line);
 		free(args);
 	}while(status);
