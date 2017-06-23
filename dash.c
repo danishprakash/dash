@@ -113,13 +113,13 @@ int dash_history()
 		}
 	}
 	printf( "\n" INVERT " <0>: Quit    <#line>: Execute respective command    <-1>: clear history file " RESET "\n\n: ");
-	scanf("%d", &ch);
+	scanf(" %d", &ch);
 	fseek(fp, 0, SEEK_SET);
-	if(!isdigit(ch))
+	if(isdigit(ch) != 0)
 	{
 		printf("please enter a numerical choice\n");	
 	}
-	if (ch == 0)
+	else if (ch == 0)
 	{	
 		fclose(fp);
 		return dash_execute(clr);
@@ -128,7 +128,6 @@ int dash_history()
 	{
 		fclose(fp);
 		fp = fopen(get_hist_file_path(), "w");
-		fprintf(fp, "");
 		fclose(fp);
 		return dash_execute(clr);
 	}
@@ -141,6 +140,7 @@ int dash_history()
 			//printf("%d %d\n", ch ,line_num);
 			if(line_num == ch)
 			{
+
 				//printf("inside if\n");
 				strcpy(prev_comm, &line[3]);
 //				printf("%s\n", prev_comm);
@@ -149,6 +149,7 @@ int dash_history()
 				fclose(fp);
 				printf("**len:%d, *args[len]:%s\n", len, *args);
 				//*args[len-1] = '\0';	
+				//**args = { "pwd", NULL };
 				return dash_execute(args);	
 	
 			}
@@ -582,7 +583,8 @@ char **split_line(char *line)
 
 		token = strtok(NULL, TOK_DELIM);
 	}
-
+	
+	printf("end of read_line\n");
 	tokens[position] = NULL;
 	//printtokens(tokens);
 	return tokens;
@@ -618,7 +620,8 @@ char *read_line()
 
 	while(1)
 	{
-		c  = getchar();
+		//c  = getchar();
+		scanf("%c", &c);
 		if (c == EOF || c == '\n')
 		{
 			//printf("\n"); 
@@ -646,6 +649,7 @@ char *read_line()
 	}
 }
 
+
 /******************* 
  * driving function
  * 
@@ -666,6 +670,7 @@ void loop()
 	//signal(SIGINT, signalHandler);
 
 	do{
+
 
 		printf("status loop\n");
 		get_dir("loop");
