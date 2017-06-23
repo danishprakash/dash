@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <signal.h>
-
+#include <ctype.h>
 
 #define RL_BUFF_SIZE 1024
 #define TK_BUFF_SIZE 64
@@ -114,7 +114,11 @@ int dash_history()
 	printf( "\n" INVERT " <0>: Quit    <#line>: Execute respective command    <-1>: clear history file " RESET "\n\n: ");
 	scanf("%d", &ch);
 	fseek(fp, 0, SEEK_SET);
-	if (ch == 0)
+	if(!isdigit(ch))
+	{
+		printf("please enter a numerical choice\n");	
+	}
+	else if (ch == 0)
 	{	
 		fclose(fp);
 		return dash_execute(clr);
@@ -128,7 +132,7 @@ int dash_history()
 		return dash_execute(clr);
 	}
 
-	else
+	else if(isdigit(ch))
 	{
 		
 	   	while((fgets(line, 128, fp)) != NULL)
@@ -269,6 +273,7 @@ int dash_launch(char **args)
 		{
 			printf("inside stcmp(builtin)\n");
 			return (*builtin_funcs[i])(args);	
+			exit(EXIT_FAILURE);
 		}
 	}
 	printf("end of launch\n");
