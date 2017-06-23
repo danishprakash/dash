@@ -100,7 +100,7 @@ int dash_history()
 	int ch, c, line_num = 1;
 	char line[128];
 	char prev_comm[128];
-	char **args=NULL;
+	char **args=NULL, **rargs=NULL;
 	int len;
 	if(!fp)
 		fprintf(stderr, RED "dash: file not found" RESET "\n");
@@ -144,10 +144,10 @@ int dash_history()
 				strcpy(prev_comm, &line[3]);
 //				printf("%s\n", prev_comm);
 				args = split_line(prev_comm);
+				len = strlen(*args);
 				fclose(fp);
-				len = sizeof(args[0])-1;
-				printf("**len:%d, *args[len]:%s\n", len, args[len]);
-				//*args[len-1] = '\0';
+				printf("**len:%d, *args[len]:%s\n", len, *args);
+				//*args[len-1] = '\0';	
 				return dash_execute(args);	
 	
 			}
@@ -201,28 +201,31 @@ void signalHandler()
  *****************************************************************************/
 int dash_execute(char **args)
 {
-	pid_t cpid;//, ppid;
-//	int status;
+	pid_t cpid, ppid;
+	int status;
 	cpid = fork();
 
 	if(cpid == 0)
 	{	
+		printf("inside child\n");
 		if(execvp(args[0], args) < 0)
 			printf("dash: command not found: %s\n", args[0]); 
 			//perror(RED "dash: " RESET);
+		exit(EXIT_FAILURE);
 		
 	}
 	else if(cpid < 0)
 		printf(RED "Error forking" RESET "\n");
 	else
-	{
-		do
-		{	
-		//parent process
-//		if(tcsetpgrp(STDOUT_FILENO, getpid()) < 0) 	//setting the current process in the
-//			perror("tcgetpgrp() error\n");		//child process the foreground process
-//			waitpid(cpid, &status, WUNTRACED);
-		}while(wait(NULL)>0);
+	{    
+		do {
+      			ppid = waitpid(cpid, &status, WUNTRACED);
+    		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+//		do
+//		{	
+//			printf("inside parent\n");
+//		}while(wait(NULL)>0);
+//		return 1;
 	}
 	return 1;
 
@@ -238,6 +241,7 @@ int dash_execute(char **args)
 
 int dash_launch(char **args)
 {
+	printf("inside launch\n");
 	FILE *history_file = NULL;
 	int i = 0, j = 0;
 
@@ -655,13 +659,13 @@ void loop()
 	//signal(SIGINT, signalHandler);
 
 	do{
+		printf("status loop\n");
 		get_dir("loop");
 		printf(CYAN "> " RESET);
 		//printf("> ");
 		line = read_line();
 		args = split_line(line);
 		//status = execute();
-		printf("\nstatus loop\n");
 		status = dash_launch(args); 
 
 		free(line);
