@@ -114,15 +114,17 @@ int dash_history()
 	}
 	printf( "\n" INVERT " <0>: Quit    <#line>: Execute respective command    <-1>: clear history file " RESET "\n\n: ");
 	scanf(" %d", &ch);
+	//ch = getchar();
+	getchar();
 	fseek(fp, 0, SEEK_SET);
-	if(isdigit(ch) != 0)
-	{
-		printf("please enter a numerical choice\n");	
-	}
-	else if (ch == 0)
+//	if(isdigit(ch) != 0)
+//	{
+//		printf("please enter a numerical choice\n");	
+//	}
+	if (ch == 0)
 	{	
 		fclose(fp);
-		return dash_execute(clr);
+		return 1;//dash_execute(clr);
 	}
 	else if(ch == -1)
 	{
@@ -132,12 +134,14 @@ int dash_history()
 		return dash_execute(clr);
 	}
 
-	else
+	else 
 	{
+		printf("inside history else\n");
 		
 	   	while((fgets(line, 128, fp)) != NULL)
 	   	{
 			//printf("%d %d\n", ch ,line_num);
+			printf("%d %d \n", line_num, ch);
 			if(line_num == ch)
 			{
 
