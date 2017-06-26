@@ -96,7 +96,7 @@ char *get_hist_file_path()
  * line number - executes that particular command again from history */
 int dash_history()
 {
-	printf("inside history\n");
+	//printf("inside history\n");
 	FILE *fp = fopen(get_hist_file_path(), "r");
 	int ch, c, line_num = 1;
 	char line[128];
@@ -113,15 +113,16 @@ int dash_history()
 		}
 	}
 	printf( "\n" INVERT " <0>: Quit    <#line>: Execute respective command    <-1>: clear history file " RESET "\n\n: ");
-	scanf(" %d", &ch);
+	scanf("%d", &ch);
 	//ch = getchar();
 	getchar();
 	fseek(fp, 0, SEEK_SET);
-//	if(isdigit(ch) != 0)
-//	{
-//		printf("please enter a numerical choice\n");	
-//	}
-	if (ch == 0)
+	if(isdigit(ch) != 0)
+	{
+		printf("please enter a numerical choice\n");	
+		return 1;
+	}
+	else if (ch == 0)
 	{	
 		fclose(fp);
 		return 1;//dash_execute(clr);
@@ -136,12 +137,12 @@ int dash_history()
 
 	else 
 	{
-		printf("inside history else\n");
+		//printf("inside history else\n");
 		
 	   	while((fgets(line, 128, fp)) != NULL)
 	   	{
 			//printf("%d %d\n", ch ,line_num);
-			printf("%d %d \n", line_num, ch);
+			//printf("%d %d \n", line_num, ch);
 			if(line_num == ch)
 			{
 
@@ -151,7 +152,7 @@ int dash_history()
 				args = split_line(prev_comm);
 				len = strlen(*args);
 				fclose(fp);
-				printf("**len:%d, *args[len]:%s\n", len, *args);
+				//printf("**len:%d, *args[len]:%s\n", len, *args);
 				//*args[len-1] = '\0';	
 				//**args = { "pwd", NULL };
 				return dash_execute(args);	
@@ -162,7 +163,7 @@ int dash_history()
 				
 	   	}
 	}	
-	printf("end of history\n");
+	//printf("end of history\n");
 	//fclose(fp);
 	return 1;
 }
@@ -208,14 +209,14 @@ void signalHandler()
  *****************************************************************************/
 int dash_execute(char **args)
 {
-	printf("inside execute\n");
+	//printf("inside execute\n");
 	pid_t cpid, ppid;
 	int status;
 	cpid = fork();
 
 	if(cpid == 0)
 	{	
-		printf("inside child\n");
+		//printf("inside child\n");
 		if(execvp(args[0], args) < 0)
 			printf("dash: command not found: %s\n", args[0]); 
 			//perror(RED "dash: " RESET);
@@ -227,16 +228,18 @@ int dash_execute(char **args)
 	else
 	{    
 		//do {
-      			ppid = waitpid(cpid, &status, WUNTRACED);
+      		//	ppid = waitpid(cpid, &status, WUNTRACED);
     		//} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 //		do
 //		{	
 //			printf("inside parent\n");
 //		}while(wait(NULL)>0);
 //		return 1;
-		printf("end of parent\n");
+//
+		wait(NULL);		
+//printf("end of parent\n");
 	}
-	printf("end of execute\n");
+	//printf("end of execute\n");
 	return 1;
 
 }
@@ -251,18 +254,18 @@ int dash_execute(char **args)
 
 int dash_launch(char **args)
 {
-	printf("inside launch\n");
+	//printf("inside launch\n");
 	FILE *history_file = NULL;
 	int i = 0, j = 0;
 
 	if(args[0] == NULL)
 	{
-		printf("inside args null\n");
+		//printf("inside args null\n");
 		return 1;
 	}
 	else if(strcmp(args[0], "history") != 0)		//excluding the history command
 	{
-		printf("here with history\n");
+		//printf("here with history\n");
 //		char file_path[128];
 //		strcat(strcpy(file_path, getenv("HOME")), "/.dash_history");
 //		printf("inside launch else\n");
@@ -285,12 +288,12 @@ int dash_launch(char **args)
 	{
 		if(strcmp(args[0], builtin_str[i]) == 0)
 		{
-			printf("inside stcmp(builtin)\n");
+			//printf("inside stcmp(builtin)\n");
 			return (*builtin_funcs[i])(args);	
 			//exit(EXIT_FAILURE);
 		}
 	}
-	printf("end of launch\n");
+	//printf("end of launch\n");
 	return dash_execute(args);
 
 }
@@ -588,7 +591,7 @@ char **split_line(char *line)
 		token = strtok(NULL, TOK_DELIM);
 	}
 	
-	printf("end of read_line\n");
+	printf("end of split_line\n");
 	tokens[position] = NULL;
 	//printtokens(tokens);
 	return tokens;
@@ -676,17 +679,17 @@ void loop()
 	do{
 
 
-		printf("status loop\n");
+		//printf("status loop\n");
 		get_dir("loop");
 		printf(CYAN "> " RESET);
 		//printf("> ");
 		line = read_line();
 		args = split_line(line);
-		printf("**line:%s, args:%s \n", line, *args);
+		//printf("**line:%s, args:%s \n", line, *args);
 		//status = execute();
 		if(strcmp(line, "") != 0)
 		{
-			printf("inside args !=  NULL\n");
+			//printf("inside args !=  NULL\n");
 			status = dash_launch(args); 
 		}
 		free(line);
