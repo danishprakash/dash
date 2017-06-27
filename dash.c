@@ -96,7 +96,7 @@ char *get_hist_file_path()
  * line number - executes that particular command again from history */
 int dash_history()
 {
-	//printf("inside history\n");
+	printf("inside history\n");
 	FILE *fp = fopen(get_hist_file_path(), "r");
 	int ch, c, line_num = 1;
 	char line[128];
@@ -114,13 +114,11 @@ int dash_history()
 	}
 	printf( "\n" INVERT " <0>: Quit    <#line>: Execute respective command    <-1>: clear history file " RESET "\n\n: ");
 	scanf("%d", &ch);
-	//ch = getchar();
 	getchar();
 	fseek(fp, 0, SEEK_SET);
 	if(isdigit(ch) != 0)
 	{
 		printf("please enter a numerical choice\n");	
-		return 1;
 	}
 	else if (ch == 0)
 	{	
@@ -131,18 +129,17 @@ int dash_history()
 	{
 		fclose(fp);
 		fp = fopen(get_hist_file_path(), "w");
+		fprintf(fp, "");
 		fclose(fp);
 		return dash_execute(clr);
 	}
 
-	else 
+	else
 	{
-		//printf("inside history else\n");
 		
 	   	while((fgets(line, 128, fp)) != NULL)
 	   	{
 			//printf("%d %d\n", ch ,line_num);
-			//printf("%d %d \n", line_num, ch);
 			if(line_num == ch)
 			{
 
@@ -154,7 +151,6 @@ int dash_history()
 				fclose(fp);
 				//printf("**len:%d, *args[len]:%s\n", len, *args);
 				//*args[len-1] = '\0';	
-				//**args = { "pwd", NULL };
 				return dash_execute(args);	
 	
 			}
@@ -228,16 +224,14 @@ int dash_execute(char **args)
 	else
 	{    
 		//do {
-      		//	ppid = waitpid(cpid, &status, WUNTRACED);
+      			ppid = waitpid(cpid, &status, WUNTRACED);
     		//} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 //		do
 //		{	
 //			printf("inside parent\n");
 //		}while(wait(NULL)>0);
 //		return 1;
-//
-		wait(NULL);		
-//printf("end of parent\n");
+		//printf("end of parent\n");
 	}
 	//printf("end of execute\n");
 	return 1;
@@ -590,8 +584,7 @@ char **split_line(char *line)
 
 		token = strtok(NULL, TOK_DELIM);
 	}
-	
-	printf("end of split_line\n");
+
 	tokens[position] = NULL;
 	//printtokens(tokens);
 	return tokens;
@@ -627,8 +620,7 @@ char *read_line()
 
 	while(1)
 	{
-		//c  = getchar();
-		scanf("%c", &c);
+		c  = getchar();
 		if (c == EOF || c == '\n')
 		{
 			//printf("\n"); 
@@ -656,7 +648,6 @@ char *read_line()
 	}
 }
 
-
 /******************* 
  * driving function
  * 
@@ -678,7 +669,6 @@ void loop()
 
 	do{
 
-
 		//printf("status loop\n");
 		get_dir("loop");
 		printf(CYAN "> " RESET);
@@ -687,11 +677,7 @@ void loop()
 		args = split_line(line);
 		//printf("**line:%s, args:%s \n", line, *args);
 		//status = execute();
-		if(strcmp(line, "") != 0)
-		{
-			//printf("inside args !=  NULL\n");
-			status = dash_launch(args); 
-		}
+		status = dash_launch(args); 
 		free(line);
 		free(args);
 	}while(status);
