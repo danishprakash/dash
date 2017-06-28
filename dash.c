@@ -74,6 +74,34 @@ int builtin_funcs_count()
  * function definitions *
 -------------------------------*/
 
+int dash_pipe(char **arg1, char **arg2)
+{
+	int fd[2], cpid;
+	pipe(fd);
+
+	int _stdin = dup(STDIN_FILENO);
+
+	if((cpid = fork()) == 0)
+	{
+		close(STDOUT_FILENO);
+		dup(fd[1]);
+		close(fd[0]);
+		dash_execute(arg1);
+		exit(EXIT_FAILURE);
+	}
+	else if(cpid > 0)
+	{
+		close(STDIN_FILENO);
+		dup(fd[0]);
+		close(fd[1]);
+		dash_execute(arg2);
+		dup2(_stdin, STDIN_FILENO);
+		return 1;
+	}
+	return 1;
+}
+
+
 char *get_hist_file_path()
 {
 	//char *home_dir = getenv("HOME");
@@ -101,8 +129,8 @@ int dash_history()
 	int ch, c, line_num = 1;
 	char line[128];
 	char prev_comm[128];
-	char **args=NULL, **rargs=NULL;
-	int len;
+	char **args=NULL;
+	//int len;
 	if(!fp)
 		fprintf(stderr, RED "dash: file not found" RESET "\n");
 	else
@@ -129,7 +157,7 @@ int dash_history()
 	{
 		fclose(fp);
 		fp = fopen(get_hist_file_path(), "w");
-		fprintf(fp, "");
+		//fprintf(fp, "");
 		fclose(fp);
 		return dash_execute(clr);
 	}
@@ -147,11 +175,11 @@ int dash_history()
 				strcpy(prev_comm, &line[3]);
 //				printf("%s\n", prev_comm);
 				args = split_line(prev_comm);
-				len = strlen(*args);
+				//len = strlen(*args);
 				fclose(fp);
 				//printf("**len:%d, *args[len]:%s\n", len, *args);
 				//*args[len-1] = '\0';	
-				return dash_execute(args);	
+				return dash_launch(args);	
 	
 			}
 			else
@@ -206,7 +234,7 @@ void signalHandler()
 int dash_execute(char **args)
 {
 	//printf("inside execute\n");
-	pid_t cpid, ppid;
+	pid_t cpid;
 	int status;
 	cpid = fork();
 
@@ -224,7 +252,7 @@ int dash_execute(char **args)
 	else
 	{    
 		//do {
-      			ppid = waitpid(cpid, &status, WUNTRACED);
+      			waitpid(cpid, &status, WUNTRACED);
     		//} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 //		do
 //		{	
@@ -277,6 +305,18 @@ int dash_launch(char **args)
 		}
 		fputs("\n", history_file);
 		fclose(history_file);
+	}
+	int m = 0;
+	while(args[m] != NULL)
+	{
+		if(!strcmp("|", args[m]))
+		{
+			char **arg2=NULL;
+			args[m] = NULL;
+			arg2 = &args[m+1];
+			return dash_pipe(args, arg2);
+		}
+		m++;
 	}
 	for(i = 0; i<builtin_funcs_count(); i++)
 	{
