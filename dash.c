@@ -55,12 +55,14 @@ int dash_launch(char **);
 int dash_execute(char **);
 int history_line_count();
 int dash_history();
+int dash_pipe(char **);
+int args_length(char **);
 
 /* array of builtin function pointers */
-int (*builtin_funcs[])(char **) = { &dash_cd, &dash_help, &dash_exit, &dash_history, &dash_grep };
+int (*builtin_funcs[])(char **) = { &dash_cd, &dash_help, &dash_exit, &dash_history, &dash_grep, &args_length };
 
 /* string array of builtin commands for strcmp() before invoking execvp() */
-char *builtin_str[] = { "cd", "help", "exit" , "history", "grep" };
+char *builtin_str[] = { "cd", "help", "exit" , "history", "grep", "sizeof" };
 
 /* return the size of the builtin array */
 int builtin_funcs_count()
@@ -74,32 +76,85 @@ int builtin_funcs_count()
  * function definitions *
 -------------------------------*/
 
-int dash_pipe(char **arg1, char **arg2)
+int args_length(char **args)
 {
-	int fd[2], cpid;
-	pipe(fd);
+	int i = 0;
 
-	int _stdin = dup(STDIN_FILENO);
+	while(args[i] != NULL)
+	{
+		i++;
+	}
+	printf("%d\n", i);
+	return i;
+}
 
-	if((cpid = fork()) == 0)
+int dash_pipe(char **args)
+{
+	/*saving current stdin and stdout for restoring*/
+	int tempin=dup(0);			
+	int tempout=dup(1);			
+	int j=0, i=0;
+	int fdin, fdout, cpid;
+	while(args[j] != NULL)
 	{
-		close(STDOUT_FILENO);
-		dup(fd[1]);
-		close(fd[0]);
-		dash_execute(arg1);
-		exit(EXIT_FAILURE);
+		if(strcmp(args[j], "<") == 0)
+		{
+			//args[j] = NULL;
+			fdin=open(args[j+1], O_RDONLY);
+			//break;
+		}
+		else if(strcmp(args[j], ">") == 0)
+		{
+			fdout=open(args[j+1], O_WRONLY);
+			//args[j] = args[j+1] = NULL;		//enable after initial testing
+			//break;
+		j++;
 	}
-	else if(cpid > 0)
+	if(!fdin)
+		fdin=dup(tempin);
+	if(!fdout)
+		fdout=dup(tempout);
+	for(i=0; i<args_length(args); i++)
 	{
-		close(STDIN_FILENO);
-		dup(fd[0]);
-		close(fd[1]);
-		dash_execute(arg2);
-		dup2(_stdin, STDIN_FILENO);
-		return 1;
-	}
+		dup2(fdin, 0);
+		close(fdin);
+
+		//if(i == args_length(args))
+		int fd[2];
+		pipe(fd);
+		fdin = fd[0];
+		fdout = fd[1];
+
 	return 1;
 }
+
+
+//int dash_pipe(char **arg1, char **arg2)
+//{
+//	int fd[2], cpid;
+//	pipe(fd);
+//
+//	int _stdin = dup(STDIN_FILENO);
+//
+//	if((cpid = fork()) == 0)
+//	{
+//		close(STDOUT_FILENO);
+//		dup(fd[1]);
+//		close(fd[0]);
+//		dash_execute(arg1);
+//		exit(EXIT_FAILURE);
+//	}
+//	else if(cpid > 0)
+//	{
+//		close(STDIN_FILENO);
+//		dup(fd[0]);
+//		close(fd[1]);
+//		dash_execute(arg2);
+//		dup2(_stdin, STDIN_FILENO);
+//		return 1;
+//	}
+//	return 1;
+//}
 
 
 char *get_hist_file_path()
@@ -306,18 +361,18 @@ int dash_launch(char **args)
 		fputs("\n", history_file);
 		fclose(history_file);
 	}
-	int m = 0;
-	while(args[m] != NULL)
-	{
-		if(!strcmp("|", args[m]))
-		{
-			char **arg2=NULL;
-			args[m] = NULL;
-			arg2 = &args[m+1];
-			return dash_pipe(args, arg2);
-		}
-		m++;
-	}
+
+//	while(args[m] != NULL)
+//	{
+//		if(!strcmp("|", args[m]))
+//		{
+//			char **arg2=NULL;
+//			args[m] = NULL;
+//			arg2 = &args[m+1];
+//			return dash_pipe(args, arg2);
+//		}
+//		m++;
+//	}
 	for(i = 0; i<builtin_funcs_count(); i++)
 	{
 		if(strcmp(args[0], builtin_str[i]) == 0)
