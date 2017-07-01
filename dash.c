@@ -14,6 +14,7 @@
 #define TK_BUFF_SIZE 64
 #define TOK_DELIM " \t\r\n\a"
 
+
 char *clr[2] = {"clear", NULL};
 
 //ANSI Color codes
@@ -57,6 +58,9 @@ int history_line_count();
 int dash_history();
 int dash_pipe(char **);
 int args_length(char **);
+char *trimws(char *);			//trim leading and trailing whitespace
+char **split_pipes(char *);
+	
 
 /* array of builtin function pointers */
 int (*builtin_funcs[])(char **) = { &dash_cd, &dash_help, &dash_exit, &dash_history, &dash_grep, &args_length };
@@ -76,6 +80,47 @@ int builtin_funcs_count()
  * function definitions *
 -------------------------------*/
 
+
+//char *trimws(char *str)
+//{
+//	char *end;
+//	while(isspace((unsigned char) *str)) str++;
+//	if(*str == 0)
+//		return str;
+//	end = str + strlen(str) - 1;
+//	while(end > str && isspace((unsigned char) *end)) end--;
+//	*(end+1) = 0;
+//	return str;
+//}
+//
+//
+//char **split_pipes(char *input)
+//{
+//	//char input[] = "cat dash.c | less | cat | grep | which";
+//	char *p = strtok(input, "|");
+//	char **s = malloc(1024*sizeof(char *));
+//	int i = 0;
+//	if(p)
+//	{	
+//		while(p != NULL)
+//		{
+//			
+//			//printf("%s_\n", p);
+//			s[i] = trimws(p);
+//			i++;
+//			p = strtok(NULL, "| ");
+//		}
+//	}
+//	s[i] = NULL;
+//	i=0;
+//	while(s[i] != NULL)
+//	{
+//		printf("%s\n", s[i]);
+//		i++;
+//	}
+//	return s;
+//}
+
 int args_length(char **args)
 {
 	int i = 0;
@@ -93,7 +138,7 @@ int dash_pipe(char **args)
 	/*saving current stdin and stdout for restoring*/
 	int tempin=dup(0);			
 	int tempout=dup(1);			
-	int j=0, i=0;
+	int j=0, i=0, flag=0;
 	int fdin, fdout, cpid;
 	while(args[j] != NULL)
 	{
@@ -101,29 +146,62 @@ int dash_pipe(char **args)
 		{
 			//args[j] = NULL;
 			fdin=open(args[j+1], O_RDONLY);
+			flag += 2;
 			//break;
 		}
 		else if(strcmp(args[j], ">") == 0)
 		{
 			fdout=open(args[j+1], O_WRONLY);
+			flag += 2;
+			//break;
 			//args[j] = args[j+1] = NULL;		//enable after initial testing
 			//break;
+		}
 		j++;
 	}
 	if(!fdin)
 		fdin=dup(tempin);
 	if(!fdout)
 		fdout=dup(tempout);
-	for(i=0; i<args_length(args); i++)
+//	int k=0;						/*have to use split_pipe instead of split_line for args*/
+//	while(args[k] != NULL)
+//	{
+//		printf("%s\n", args[i]);
+//		i++;
+//	}
+	for(i=0; i<args_length(args)-flag; i++)
 	{
 		dup2(fdin, 0);
 		close(fdin);
+		printf("inside pipe for\n");
+		if((strcmp(args[i], "|")) == 0)
+			continue;
 
 		//if(i == args_length(args))
+		
 		int fd[2];
 		pipe(fd);
+		
 		fdin = fd[0];
 		fdout = fd[1];
+		
+		dup2(fdout, 1);
+		printf("above pipe(fd)\n");
+		close(fdout);
+		
+		if((cpid = fork()) == 0)
+		{
+			printf("inside child\n");
+			execvp(args[i], args);
+			perror("error forking\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	dup2(tempin, 0);
+	dup2(tempout, 1);
+	close(tempin);
+	close(tempout);
 
 	return 1;
 }
@@ -361,18 +439,20 @@ int dash_launch(char **args)
 		fputs("\n", history_file);
 		fclose(history_file);
 	}
-
-//	while(args[m] != NULL)
-//	{
-//		if(!strcmp("|", args[m]))
-//		{
-//			char **arg2=NULL;
-//			args[m] = NULL;
-//			arg2 = &args[m+1];
-//			return dash_pipe(args, arg2);
-//		}
-//		m++;
-//	}
+	int m = 0;
+	while(args[m] != NULL)
+	{
+		if(!strcmp("|", args[m]))
+		{
+			//char **arg2=NULL;
+			//args[m] = NULL;
+			//arg2 = &args[m+1];
+			printf("inside pipe call\n");
+			return dash_pipe(args);
+			break;
+		}
+		m++;
+	}
 	for(i = 0; i<builtin_funcs_count(); i++)
 	{
 		if(strcmp(args[0], builtin_str[i]) == 0)
