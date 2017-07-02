@@ -81,45 +81,45 @@ int builtin_funcs_count()
 -------------------------------*/
 
 
-//char *trimws(char *str)
-//{
-//	char *end;
-//	while(isspace((unsigned char) *str)) str++;
-//	if(*str == 0)
-//		return str;
-//	end = str + strlen(str) - 1;
-//	while(end > str && isspace((unsigned char) *end)) end--;
-//	*(end+1) = 0;
-//	return str;
-//}
-//
-//
-//char **split_pipes(char *input)
-//{
-//	//char input[] = "cat dash.c | less | cat | grep | which";
-//	char *p = strtok(input, "|");
-//	char **s = malloc(1024*sizeof(char *));
-//	int i = 0;
-//	if(p)
-//	{	
-//		while(p != NULL)
-//		{
-//			
-//			//printf("%s_\n", p);
-//			s[i] = trimws(p);
-//			i++;
-//			p = strtok(NULL, "| ");
-//		}
-//	}
-//	s[i] = NULL;
-//	i=0;
-//	while(s[i] != NULL)
-//	{
-//		printf("%s\n", s[i]);
-//		i++;
-//	}
-//	return s;
-//}
+char *trimws(char *str)
+{
+	char *end;
+	while(isspace((unsigned char) *str)) str++;
+	if(*str == 0)
+		return str;
+	end = str + strlen(str) - 1;
+	while(end > str && isspace((unsigned char) *end)) end--;
+	*(end+1) = 0;
+	return str;
+}
+
+
+char **split_pipes(char *input)
+{
+	//char input[] = "cat dash.c | less | cat | grep | which";
+	char *p = strtok(input, "|");
+	char **s = malloc(1024*sizeof(char *));
+	int i = 0;
+	if(p)
+	{	
+		while(p != NULL)
+		{
+			
+			//printf("%s_\n", p);
+			s[i] = trimws(p);
+			i++;
+			p = strtok(NULL, "| ");
+		}
+	}
+	s[i] = NULL;
+	//i=0;
+	//while(s[i] != NULL)
+	//{
+	//	printf("%s\n", s[i]);
+	//	i++;
+	//}
+	return s;
+}
 
 int args_length(char **args)
 {
@@ -163,12 +163,12 @@ int dash_pipe(char **args)
 		fdin=dup(tempin);
 	if(!fdout)
 		fdout=dup(tempout);
-//	int k=0;						/*have to use split_pipe instead of split_line for args*/
-//	while(args[k] != NULL)
-//	{
-//		printf("%s\n", args[i]);
-//		i++;
-//	}
+	int k=0;						/*have to use split_pipe instead of split_line for args*/
+	while(args[k] != NULL)
+	{
+		printf("%s\n", args[i]);
+		i++;
+	}
 	for(i=0; i<args_length(args)-flag; i++)
 	{
 		dup2(fdin, 0);
@@ -838,7 +838,7 @@ void loop()
 {
 	char *line;
 	char **args;
-	int status=1;
+	int status=1, i = 0, flag = 0;
 	
 	//signal(SIGINT, signalHandler);
 
@@ -849,10 +849,31 @@ void loop()
 		printf(CYAN "> " RESET);
 		//printf("> ");
 		line = read_line();
-		args = split_line(line);
+		flag = 0;
+		while(line[i] != '\0')
+		{
+			if(line[i] == '|')
+			{
+				printf("inside if\n");
+				flag = 1;
+				break;
+			}
+			i++;
+		}
+		if(flag)
+		{
+				args = split_pipes(line);
+				status = dash_pipe(args);
+		}
+		else
+		{
+			args = split_line(line);
+			status = dash_launch(args);
+		}
+		//args = split_line(line);
 		//printf("**line:%s, args:%s \n", line, *args);
 		//status = execute();
-		status = dash_launch(args); 
+		//status = dash_launch(args); 
 		free(line);
 		free(args);
 	}while(status);
