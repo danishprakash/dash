@@ -100,24 +100,21 @@ char **split_pipes(char *input)
 	char *p = strtok(input, "|");
 	char **s = malloc(1024*sizeof(char *));
 	int i = 0;
-	if(p)
-	{	
-		while(p != NULL)
-		{
-			
-			//printf("%s_\n", p);
-			s[i] = trimws(p);
-			i++;
-			p = strtok(NULL, "| ");
-		}
+	while(p != NULL)
+	{
+		
+		s[i] = trimws(p);
+		i++;
+		//printf("%s_\n", p);
+		p = strtok(NULL, "| ");
 	}
-	s[i] = NULL;
-	//i=0;
-	//while(s[i] != NULL)
-	//{
-	//	printf("%s\n", s[i]);
-	//	i++;
-	//}
+	s[++i] = NULL;
+	i=0;
+	while(s[i] != NULL)
+	{
+		printf("%s\n", s[i]);
+		i++;
+	}
 	return s;
 }
 
@@ -139,7 +136,8 @@ int dash_pipe(char **args)
 	int tempin=dup(0);			
 	int tempout=dup(1);			
 	int j=0, i=0, flag=0;
-	int fdin, fdout, cpid;
+	int fdin, fdout;
+	pid_t cpid;
 	while(args[j] != NULL)
 	{
 		if(strcmp(args[j], "<") == 0)
@@ -164,18 +162,17 @@ int dash_pipe(char **args)
 	if(!fdout)
 		fdout=dup(tempout);
 	int k=0;						/*have to use split_pipe instead of split_line for args*/
-	while(args[k] != NULL)
-	{
-		printf("%s\n", args[i]);
-		i++;
-	}
+//	while(args[k] != NULL)
+//	{
+//		printf("%s\n", args[i]);
+//		i++;
+//	}
 	for(i=0; i<args_length(args)-flag; i++)
 	{
 		dup2(fdin, 0);
 		close(fdin);
-		printf("inside pipe for\n");
-		if((strcmp(args[i], "|")) == 0)
-			continue;
+	//	if((strcmp(args[i], "|")) == 0)
+	//		continue;
 
 		//if(i == args_length(args))
 		
@@ -186,12 +183,12 @@ int dash_pipe(char **args)
 		fdout = fd[1];
 		
 		dup2(fdout, 1);
-		printf("above pipe(fd)\n");
+		//printf("above pipe(fd)\n");
 		close(fdout);
-		
-		if((cpid = fork()) == 0)
+		cpid = fork();
+		if(cpid == 0)
 		{
-			printf("inside child\n");
+			//printf("inside child\n");
 			execvp(args[i], args);
 			perror("error forking\n");
 			exit(EXIT_FAILURE);
@@ -440,19 +437,19 @@ int dash_launch(char **args)
 		fclose(history_file);
 	}
 	int m = 0;
-	while(args[m] != NULL)
-	{
-		if(!strcmp("|", args[m]))
-		{
-			//char **arg2=NULL;
-			//args[m] = NULL;
-			//arg2 = &args[m+1];
-			printf("inside pipe call\n");
-			return dash_pipe(args);
-			break;
-		}
-		m++;
-	}
+//	while(args[m] != NULL)
+//	{
+//		if(!strcmp("|", args[m]))
+//		{
+//			//char **arg2=NULL;
+//			//args[m] = NULL;
+//			//arg2 = &args[m+1];
+//			printf("inside pipe call\n");
+//			return dash_pipe(args);
+//			break;
+//		}
+//		m++;
+//	}
 	for(i = 0; i<builtin_funcs_count(); i++)
 	{
 		if(strcmp(args[0], builtin_str[i]) == 0)
