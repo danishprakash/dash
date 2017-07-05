@@ -179,39 +179,32 @@ int dash_pipe(char **args)
 			m++;
 		}
 		printf("___\n");
-		dup2(fdin, 0);
-		close(fdin);
-	//	if((strcmp(args[i], "|")) == 0)
-	//		continue;
-
-		//if(i == args_length(args))
-		
 		int fd[2];
 		pipe(fd);
-		if(i != 0)
-			fdin = fd[0];
+		if(i == 0)
+		{	
+			fdin = STDIN_FILENO;
+			fdout = fd[1];
+		}
+		else
+			fdout = STDOUT_FILENO;
 		fdout = fd[1];
-		
 		cpid = fork();
 		if(cpid == 0)
 		{
-			//fdin = fd[0];
-			//close(1);
-			dup2(fdin, 0);
-			dup2(fd[1], 1);	
-			close(fdout);
-			//close(0);
-			//printf("inside child\n");
+			dup2(fd[0], 0);
+			close(fd[0]);
+			dup2(fd[1], 1);
+			close(fd[1]);
 			execvp(rargs[0], rargs);
 			perror("error forking\n");
 			exit(EXIT_FAILURE);
 		}
-		else 
-		{
-			wait(NULL);
-			//close(fd[1]);
-			fdin = fd[1];
-		}
+			close(fd[0]);
+			close(fd[1]);
+			fdin = fd[0];
+			//wait();
+		
 	}
 
 	dup2(tempin, 0);
