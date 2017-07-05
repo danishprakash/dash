@@ -110,11 +110,11 @@ char **split_pipes(char *input)
 	}
 	s[++i] = NULL;
 	i=0;
-	while(s[i] != NULL)
-	{
-		printf("%s\n", s[i]);
-		i++;
-	}
+	//while(s[i] != NULL)
+	//{
+	//	printf("%s\n", s[i]);
+	//	i++;
+	//}
 	return s;
 }
 
@@ -126,7 +126,7 @@ int args_length(char **args)
 	{
 		i++;
 	}
-	printf("%d\n", i);
+	//printf("%d\n", i);
 	return i;
 }
 
@@ -161,7 +161,8 @@ int dash_pipe(char **args)
 		fdin=dup(tempin);
 	if(!fdout)
 		fdout=dup(tempout);
-	int k=0;						/*have to use split_pipe instead of split_line for args*/
+	//printf("before loop\n");
+//	int k=0;						/*have to use split_pipe instead of split_line for args*/
 //	while(args[k] != NULL)
 //	{
 //		printf("%s\n", args[i]);
@@ -169,6 +170,15 @@ int dash_pipe(char **args)
 //	}
 	for(i=0; i<args_length(args)-flag; i++)
 	{
+		printf("inside floop\n");
+		char **rargs = split_line(args[i]);
+		int m = 0;
+		while(rargs[m] != NULL)
+		{
+			printf("%s\n", rargs[m]);
+			m++;
+		}
+		printf("___\n");
 		dup2(fdin, 0);
 		close(fdin);
 	//	if((strcmp(args[i], "|")) == 0)
@@ -178,20 +188,29 @@ int dash_pipe(char **args)
 		
 		int fd[2];
 		pipe(fd);
-		
-		fdin = fd[0];
+		if(i != 0)
+			fdin = fd[0];
 		fdout = fd[1];
 		
-		dup2(fdout, 1);
-		//printf("above pipe(fd)\n");
-		close(fdout);
 		cpid = fork();
 		if(cpid == 0)
 		{
+			//fdin = fd[0];
+			//close(1);
+			dup2(fdin, 0);
+			dup2(fd[1], 1);	
+			close(fdout);
+			//close(0);
 			//printf("inside child\n");
-			execvp(args[i], args);
+			execvp(rargs[0], rargs);
 			perror("error forking\n");
 			exit(EXIT_FAILURE);
+		}
+		else 
+		{
+			wait(NULL);
+			//close(fd[1]);
+			fdin = fd[1];
 		}
 	}
 
@@ -851,7 +870,7 @@ void loop()
 		{
 			if(line[i] == '|')
 			{
-				printf("inside if\n");
+				//printf("inside if\n");
 				flag = 1;
 				break;
 			}
