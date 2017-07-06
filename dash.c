@@ -147,20 +147,20 @@ int dash_pipe(char **args)
 			flag += 2;
 			//break;
 		}
-		else if(strcmp(args[j], ">") == 0)
-		{
-			fdout=open(args[j+1], O_WRONLY);
-			flag += 2;
-			//break;
-			//args[j] = args[j+1] = NULL;		//enable after initial testing
-			//break;
-		}
+//		else if(strcmp(args[j], ">") == 0)
+//		{
+//			fdout=open(args[j+1], O_WRONLY);
+//			flag += 2;
+//			//break;
+//			//args[j] = args[j+1] = NULL;		//enable after initial testing
+//			//break;
+//		}
 		j++;
 	}
 	if(!fdin)
 		fdin=dup(tempin);
-	if(!fdout)
-		fdout=dup(tempout);
+//	if(!fdout)
+//		fdout=dup(tempout);
 	//printf("before loop\n");
 //	int k=0;						/*have to use split_pipe instead of split_line for args*/
 //	while(args[k] != NULL)
@@ -168,44 +168,64 @@ int dash_pipe(char **args)
 //		printf("%s\n", args[i]);
 //		i++;
 //	}
+	int pid;
 	for(i=0; i<args_length(args)-flag; i++)
 	{
-		printf("inside floop\n");
 		char **rargs = split_line(args[i]);
-		int m = 0;
-		while(rargs[m] != NULL)
+//		int m = 0;
+//		while(rargs[m] != NULL)
+//		{
+//			printf("%s\n", rargs[m]);
+//			m++;
+//		}
+
+		dup2(fdin, 0);
+		close(fdin);
+		if(i == args_length(args)-flag-2 && strcmp(args[i+1], ">") == 0)
 		{
-			printf("%s\n", rargs[m]);
-			m++;
+			if(strcmp(args[i], ">") == 0)
+			{
+				fdout = open(args[i+1], O_WRONLY);
+				i++;
+			}
+			else
+			{
+				fdout = dup(tempout);
+			}
 		}
-		printf("___\n");
-		int fd[2];
-		pipe(fd);
-		if(i == 0)
-		{	
-			fdin = STDIN_FILENO;
-			fdout = fd[1];
-		}
+		else if(i == args_length(args)-1-flag)
+			fdout = dup(tempout);
 		else
-			fdout = STDOUT_FILENO;
-		fdout = fd[1];
-		cpid = fork();
-		if(cpid == 0)
 		{
-			dup2(fd[0], 0);
-			close(fd[0]);
-			dup2(fd[1], 1);
-			close(fd[1]);
+			int fd[2];
+			pipe(fd);
+			fdout = fd[1];
+			fdin = fd[0];
+		}
+
+		
+
+		dup2(fdout, 1);
+		close(fdout);
+		
+		
+		pid = fork();
+		if(pid == 0)
+		{
 			execvp(rargs[0], rargs);
 			perror("error forking\n");
 			exit(EXIT_FAILURE);
 		}
-			close(fd[0]);
-			close(fd[1]);
-			fdin = fd[0];
-			//wait();
-		
+
 	}
+
+		int k = 0;
+		while(k < args_length(args)-flag)
+		{
+			wait(NULL);
+	
+			k++;
+		}
 
 	dup2(tempin, 0);
 	dup2(tempout, 1);
