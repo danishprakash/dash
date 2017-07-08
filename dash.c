@@ -171,6 +171,7 @@ int dash_pipe(char **args)
 	int pid;
 	for(i=0; i<args_length(args)-flag; i++)
 	{
+//		printf("inside floop\n");
 		char **rargs = split_line(args[i]);
 //		int m = 0;
 //		while(rargs[m] != NULL)
@@ -178,22 +179,19 @@ int dash_pipe(char **args)
 //			printf("%s\n", rargs[m]);
 //			m++;
 //		}
-
+//		printf("___\n");
 		dup2(fdin, 0);
 		close(fdin);
-		if(i == args_length(args)-flag-2 && strcmp(args[i+1], ">") == 0)
-		{
-			if(strcmp(args[i], ">") == 0)
-			{
-				fdout = open(args[i+1], O_WRONLY);
+		if(i == args_length(args)-3 && strcmp(args[i+1], ">") == 0)
+		{	
+			if((fdout = open(args[i+1], O_WRONLY)))
 				i++;
-			}
-			else
-			{
-				fdout = dup(tempout);
-			}
 		}
-		else if(i == args_length(args)-1-flag)
+		//else if(i == args_length(args)-3 && strcmp(args[i+1], ">") != 0)
+		//{
+		//	fdout = dup(tempout);
+		//}
+		else if(i == args_length(args)-flag-1)
 			fdout = dup(tempout);
 		else
 		{
@@ -212,20 +210,26 @@ int dash_pipe(char **args)
 		pid = fork();
 		if(pid == 0)
 		{
+			//dup2(fd[0], 0);
+			//close(fd[0]);
+			//dup2(fd[1], 1);
+			//close(fd[1]);
 			execvp(rargs[0], rargs);
 			perror("error forking\n");
 			exit(EXIT_FAILURE);
 		}
 
-	}
-
-		int k = 0;
-		while(k < args_length(args)-flag)
-		{
+		//int k = 0;
+		//while(k < args_length(args)-flag)
+		//{
 			wait(NULL);
-	
-			k++;
-		}
+		//	//printf("%d\n", k);
+		//	k++;
+		//}
+		//close(fd[0]);
+			//close(fd[1]);
+			//fdin = fd[0];
+	}
 
 	dup2(tempin, 0);
 	dup2(tempout, 1);
@@ -761,7 +765,7 @@ char **split_line(char *line)
 {
 	int buffsize = TK_BUFF_SIZE, position = 0;
 	char **tokens = malloc(buffsize*sizeof(char*));
-	char **token;
+	char *token;
 
 	if(!tokens)
 	{
@@ -790,7 +794,14 @@ char **split_line(char *line)
 	}
 
 	tokens[position] = NULL;
-	//printtokens(tokens);
+
+	int i=0;
+	while(tokens[i] != NULL)
+	{
+		printf("%s\n", tokens[i]);
+		i++;
+	}
+	
 	return tokens;
 }
 
@@ -879,6 +890,7 @@ void loop()
 		//printf("> ");
 		line = read_line();
 		flag = 0;
+		i = 0;
 		while(line[i] != '\0')
 		{
 			if(line[i] == '|')
