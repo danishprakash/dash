@@ -60,7 +60,7 @@ int dash_pipe(char **);
 int args_length(char **);
 char *trimws(char *);			//trim leading and trailing whitespace
 char **split_pipes(char *);
-	
+void history_input(char **);
 
 /* array of builtin function pointers */
 int (*builtin_funcs[])(char **) = { &dash_cd, &dash_help, &dash_exit, &dash_history, &dash_grep, &args_length };
@@ -138,6 +138,9 @@ int dash_pipe(char **args)
 	int j=0, i=0, flag=0;
 	int fdin, fdout;
 	pid_t cpid;
+
+	//history_input(args);
+
 	while(args[j] != NULL)
 	{
 		if(strcmp(args[j], "<") == 0)
@@ -440,12 +443,34 @@ int dash_execute(char **args)
  * will execute the systemcall execvp(args)
  ****************************************************************/
 
+void history_input(char **args)
+{	
+	FILE *history_file = NULL;
+	int j = 0;
+
+	history_file = fopen(get_hist_file_path(), "a+");
+	//		printf("file opened\n");
+	j = 0;
+	//		printf("%s\n", file_path);
+	fprintf(history_file, "%d. ", history_line_count());
+	while(args[j] != NULL)
+	{
+		if(j > 0)
+			fputs(" ", history_file);
+		fputs(args[j], history_file);
+		j++;
+	}
+	fputs("\n", history_file);
+	fclose(history_file);
+}
+
+
 int dash_launch(char **args)
 {
 	//printf("inside launch\n");
-	FILE *history_file = NULL;
-	int i = 0, j = 0;
-
+//	FILE *history_file = NULL;
+	int i = 0;// j = 0;
+//
 	if(args[0] == NULL)
 	{
 		//printf("inside args null\n");
@@ -453,39 +478,8 @@ int dash_launch(char **args)
 	}
 	else if(strcmp(args[0], "history") != 0)		//excluding the history command
 	{
-		//printf("here with history\n");
-//		char file_path[128];
-//		strcat(strcpy(file_path, getenv("HOME")), "/.dash_history");
-//		printf("inside launch else\n");
-		history_file = fopen(get_hist_file_path(), "a+");
-//		printf("file opened\n");
-		j = 0;
-//		printf("%s\n", file_path);
-		fprintf(history_file, "%d. ", history_line_count());
-		while(args[j] != NULL)
-		{
-			if(j > 0)
-				fputs(" ", history_file);
-			fputs(args[j], history_file);
-			j++;
-		}
-		fputs("\n", history_file);
-		fclose(history_file);
+		history_input(args);				//storing cmds in history
 	}
-	int m = 0;
-//	while(args[m] != NULL)
-//	{
-//		if(!strcmp("|", args[m]))
-//		{
-//			//char **arg2=NULL;
-//			//args[m] = NULL;
-//			//arg2 = &args[m+1];
-//			printf("inside pipe call\n");
-//			return dash_pipe(args);
-//			break;
-//		}
-//		m++;
-//	}
 	for(i = 0; i<builtin_funcs_count(); i++)
 	{
 		if(strcmp(args[0], builtin_str[i]) == 0)
@@ -795,12 +789,12 @@ char **split_line(char *line)
 
 	tokens[position] = NULL;
 
-	int i=0;
-	while(tokens[i] != NULL)
-	{
-		printf("%s\n", tokens[i]);
-		i++;
-	}
+//	int i=0;
+//	while(tokens[i] != NULL)
+//	{
+//		printf("%s\n", tokens[i]);
+//		i++;
+//	}
 	
 	return tokens;
 }
@@ -883,8 +877,6 @@ void loop()
 	//signal(SIGINT, signalHandler);
 
 	do{
-
-		//printf("status loop\n");
 		get_dir("loop");
 		printf(CYAN "> " RESET);
 		//printf("> ");
@@ -903,6 +895,7 @@ void loop()
 		}
 		if(flag)
 		{
+				//history_input(split_line((line)));
 				args = split_pipes(line);
 				status = dash_pipe(args);
 		}
@@ -911,10 +904,6 @@ void loop()
 			args = split_line(line);
 			status = dash_launch(args);
 		}
-		//args = split_line(line);
-		//printf("**line:%s, args:%s \n", line, *args);
-		//status = execute();
-		//status = dash_launch(args); 
 		free(line);
 		free(args);
 	}while(status);
