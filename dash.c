@@ -61,7 +61,9 @@ int args_length(char **);
 char *trimws(char *);			//trim leading and trailing whitespace
 char **split_pipes(char *);
 void history_input(char **, char *);
+void pipe_history_input(char *);
 char *get_hist_file_path();
+
 
 /* array of builtin function pointers */
 int (*builtin_funcs[])(char **) = { &dash_cd, &dash_help, &dash_exit, &dash_history, &dash_grep, &args_length };
@@ -81,14 +83,17 @@ int builtin_funcs_count()
  * function definitions *
 -------------------------------*/
 
+void pipe_history_input(char *line)
+{
+	FILE *history_file = fopen(get_hist_file_path(), "a+");
+	fprintf(history_file, "%d. %s\n", history_line_count(), line);
+	fclose(history_file);
+}
 
 void history_input(char **args, char *d)
 {	
-	FILE *history_file = NULL;
-	int j = 0;
-	history_file = fopen(get_hist_file_path(), "a+");
-
-	j = 0;
+	FILE *history_file = fopen(get_hist_file_path(), "a+");
+	int j = 0;	
 	fprintf(history_file, "%d. ", history_line_count());
 	while(args[j] != NULL)
 	{
@@ -312,24 +317,23 @@ char *get_hist_file_path()
  * q - exit
  * line number - executes that particular command again from history */
 int dash_history()
-{
-	printf("inside history\n");
+{	
 	FILE *fp = fopen(get_hist_file_path(), "r");
 	int ch, c, line_num = 1;
 	char line[128];
 	char prev_comm[128];
 	char **args=NULL;
-	//int len;
 	if(!fp)
 		fprintf(stderr, RED "dash: file not found" RESET "\n");
 	else
 	{
+		putchar('\n');
 		while((c = getc(fp)) != EOF)
 		{
 			putchar(c);
 		}
 	}
-	printf( "\n" INVERT " <0>: Quit    <#line>: Execute respective command    <-1>: clear history file " RESET "\n\n: ");
+	printf( "\n" INVERT " <0>: Quit    <#line>: Execute command    <-1>: clear history" RESET "\n\n: ");
 	scanf("%d", &ch);
 	getchar();
 	fseek(fp, 0, SEEK_SET);
@@ -888,7 +892,7 @@ void loop()
 	do{
 		get_dir("loop");
 		printf(CYAN "> " RESET);
-		line = read_line();
+		line = read_line();	
 		flag = 0;
 		i = 0;
 		while(line[i] != '\0')
@@ -904,12 +908,14 @@ void loop()
 		{
 //				args = split_line(line); 
 				//history_input(split_pipes(line), " | ");	
+				pipe_history_input(line);
 				args = split_pipes(line);
-				history_input(args, " | ");
+				//history_input(args, " | ");
 				status = dash_pipe(args);
 		}
 		else
 		{
+			//pipe_history_input(line);
 			args = split_line(line);
 			status = dash_launch(args);
 		}
