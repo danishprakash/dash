@@ -1,4 +1,4 @@
 all: dash.c
-	cc -g -Wall -o output dash.c
+	cc -g -Wall -o dash  dash.c
 clean:
-	output
+	dash
