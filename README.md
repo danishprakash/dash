@@ -2,10 +2,14 @@
 dash is a Unix shell written completely in C.
 
 ## Installation
-`$ make`
+```bash
+$ make
+```
 
 ## Usage
-`$ ./dash`
+```bash
+$ ./dash
+```
 
 ## Features
 - Split commands wrt pipes `'|'` and whitespaces `' '`
