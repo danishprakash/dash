@@ -135,11 +135,6 @@ char **split_pipes(char *input)
 	}
 	s[++i] = NULL;
 	i=0;
-	//while(s[i] != NULL)
-	//{
-	//	printf("%s\n", s[i]);
-	//	i++;
-	//}
 	return s;
 }
 
@@ -151,7 +146,6 @@ int args_length(char **args)
 	{
 		i++;
 	}
-	//printf("%d\n", i);
 	return i;
 }
 
@@ -160,21 +154,18 @@ int dash_pipe(char **args)
 	/*saving current stdin and stdout for restoring*/
 	int tempin=dup(0);			
 	int tempout=dup(1);			
-	int j=0, i=0, flag=0;
-	int fdin, fdout;
+	int i=0, flag=0;
+	int fdin = 0, fdout;
 
-
-	//history_input(args);
-
-	while(args[j] != NULL)
-	{
-		if(strcmp(args[j], "<") == 0)
-		{
-			//args[j] = NULL;
-			fdin=open(args[j+1], O_RDONLY);
-			flag += 2;
-			//break;
-		}
+//	while(args[j] != NULL)
+//	{
+//		if(strcmp(args[j], "<") == 0)
+//		{
+//			//args[j] = NULL;
+//			fdin=open(args[j+1], O_RDONLY);
+//			flag += 2;
+//			//break;
+//		}
 //		else if(strcmp(args[j], ">") == 0)
 //		{
 //			fdout=open(args[j+1], O_WRONLY);
@@ -183,31 +174,14 @@ int dash_pipe(char **args)
 //			//args[j] = args[j+1] = NULL;		//enable after initial testing
 //			//break;
 //		}
-		j++;
-	}
+//		j++;
+//	}
 	if(!fdin)
 		fdin=dup(tempin);
-//	if(!fdout)
-//		fdout=dup(tempout);
-	//printf("before loop\n");
-//	int k=0;						/*have to use split_pipe instead of split_line for args*/
-//	while(args[k] != NULL)
-//	{
-//		printf("%s\n", args[i]);
-//		i++;
-//	}
 	int pid;
 	for(i=0; i<args_length(args)-flag; i++)
 	{
-//		printf("inside floop\n");
 		char **rargs = split_line(args[i]);
-//		int m = 0;
-//		while(rargs[m] != NULL)
-//		{
-//			printf("%s\n", rargs[m]);
-//			m++;
-//		}
-//		printf("___\n");
 		dup2(fdin, 0);
 		close(fdin);
 		if(i == args_length(args)-3 && strcmp(args[i+1], ">") == 0)
@@ -215,10 +189,6 @@ int dash_pipe(char **args)
 			if((fdout = open(args[i+1], O_WRONLY)))
 				i++;
 		}
-		//else if(i == args_length(args)-3 && strcmp(args[i+1], ">") != 0)
-		//{
-		//	fdout = dup(tempout);
-		//}
 		else if(i == args_length(args)-flag-1)
 			fdout = dup(tempout);
 		else
@@ -227,9 +197,7 @@ int dash_pipe(char **args)
 			pipe(fd);
 			fdout = fd[1];
 			fdin = fd[0];
-		}
-
-		
+		}	
 
 		dup2(fdout, 1);
 		close(fdout);
@@ -238,25 +206,12 @@ int dash_pipe(char **args)
 		pid = fork();
 		if(pid == 0)
 		{
-			//dup2(fd[0], 0);
-			//close(fd[0]);
-			//dup2(fd[1], 1);
-			//close(fd[1]);
 			execvp(rargs[0], rargs);
 			perror("error forking\n");
 			exit(EXIT_FAILURE);
 		}
 
-		//int k = 0;
-		//while(k < args_length(args)-flag)
-		//{
-			wait(NULL);
-		//	//printf("%d\n", k);
-		//	k++;
-		//}
-		//close(fd[0]);
-			//close(fd[1]);
-			//fdin = fd[0];
+		wait(NULL);
 	}
 
 	dup2(tempin, 0);
@@ -267,6 +222,8 @@ int dash_pipe(char **args)
 	return 1;
 }
 
+
+/* Function for piping between just two commands */
 
 //int dash_pipe(char **arg1, char **arg2)
 //{
@@ -298,15 +255,8 @@ int dash_pipe(char **args)
 
 char *get_hist_file_path()
 {
-	//char *home_dir = getenv("HOME");
-	//char *fname = "/.dash_history";
-	//char *file_path = malloc(strlen(home_dir)+1);
 	static char file_path[128];
 	strcat(strcpy(file_path, getenv("HOME")), "/.dash_history");
-//	file_path = realloc(file_path, strlen(fname));
-//	strcpy(file_path, home_dir);
-//	strcpy(file_path, fname);
-
 	return file_path;
 }
 
@@ -508,23 +458,23 @@ int dash_launch(char **args)
 }
 
 
-int dash_file(char **args)
-{
-	int fp=0;
-	struct stat st;
-	if(args[1] != NULL && strcmp(args[0], "file") == 0)
-	{	
-		fp = open(args[1], O_RDONLY);
-		if(fstat(fp, &st) > -1)
-		{
-			printf("Name:\t%s\nSize:\t%ld bytes\n", args[1], st.st_size);
-		}	
-		else
-			printf( RED BOLD "dash: unable to access file" RESET "\n");
-		close(fp);
-	}
-	return 1;
-}
+//int dash_file(char **args)
+//{
+//	int fp=0;
+//	struct stat st;
+//	if(args[1] != NULL && strcmp(args[0], "file") == 0)
+//	{	
+//		fp = open(args[1], O_RDONLY);
+//		if(fstat(fp, &st) > -1)
+//		{
+//			printf("Name:\t%s\nSize:\t%ld bytes\n", args[1], st.st_size);
+//		}	
+//		else
+//			printf( RED BOLD "dash: unable to access file" RESET "\n");
+//		close(fp);
+//	}
+//	return 1;
+//}
 
 
 int dash_grep(char **args)
@@ -884,7 +834,7 @@ char *read_line()
 void loop()
 {
 	char *line;
-	char **args, **rargs;
+	char **args;
 	int status=1, i = 0, flag = 0;
 	
 	//signal(SIGINT, signalHandler);
@@ -906,16 +856,12 @@ void loop()
 		}
 		if(flag)
 		{
-//				args = split_line(line); 
-				//history_input(split_pipes(line), " | ");	
 				pipe_history_input(line);
-				args = split_pipes(line);
-				//history_input(args, " | ");
+				args = split_pipes(line);	
 				status = dash_pipe(args);
 		}
 		else
 		{
-			//pipe_history_input(line);
 			args = split_line(line);
 			status = dash_launch(args);
 		}
@@ -927,9 +873,7 @@ void loop()
 
 int main(int argc, char **argv)
 {
-	//config file for custom prompt by the user
 
 	loop();
-
 	return EXIT_SUCCESS;
 }
