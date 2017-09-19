@@ -66,10 +66,10 @@ char *get_hist_file_path();
 
 
 /* array of builtin function pointers */
-int (*builtin_funcs[])(char **) = { &dash_cd, &dash_help, &dash_exit, &dash_history, &dash_grep, &args_length };
+int (*builtin_funcs[])(char **) = {&dash_cd, &dash_help, &dash_exit, &dash_history, &dash_grep, &args_length };
 
 /* string array of builtin commands for strcmp() before invoking execvp() */
-char *builtin_str[] = { "cd", "help", "exit" , "history", "grep", "sizeof" };
+char *builtin_str[] = { "dash_cd",  "help", "exit" , "history", "grep", "sizeof" };
 
 /* return the size of the builtin array */
 int builtin_funcs_count()
@@ -133,13 +133,13 @@ char **split_pipes(char *input)
 		//printf("%s_\n", p);
 		p = strtok(NULL, "| ");
 	}
-	s[++i] = NULL;
+	s[i] = NULL;
 	i=0;
-	//while(s[i] != NULL)
-	//{
-	//	printf("%s\n", s[i]);
-	//	i++;
-	//}
+	while(s[i] != NULL)
+	{
+		printf("%s\n", s[i]);
+		i++;
+	}
 	return s;
 }
 
@@ -166,8 +166,9 @@ int dash_pipe(char **args)
 
 	//history_input(args);
 
-	while(args[j] != NULL)
+	for(j =0; j<args_length(args); j++)
 	{
+		
 		if(strcmp(args[j], "<") == 0)
 		{
 			//args[j] = NULL;
@@ -183,7 +184,6 @@ int dash_pipe(char **args)
 //			//args[j] = args[j+1] = NULL;		//enable after initial testing
 //			//break;
 //		}
-		j++;
 	}
 	if(!fdin)
 		fdin=dup(tempin);
@@ -751,7 +751,7 @@ void get_dir(char *state)
 
 int dash_cd(char **args)
 {
-	printf(YELLOW "OWN" RESET "\n");
+	//printf(YELLOW "OWN" RESET "\n");
 	//get_dir();
 	if(args[1] == NULL)
 	{
@@ -884,7 +884,7 @@ char *read_line()
 void loop()
 {
 	char *line;
-	char **args, **rargs;
+	char **args;
 	int status=1, i = 0, flag = 0;
 	
 	//signal(SIGINT, signalHandler);
