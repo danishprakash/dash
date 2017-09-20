@@ -17,3 +17,4 @@ $ ./dash
 - History
 - Recalling from history
 - Colored formatting
+- Builtin commands
