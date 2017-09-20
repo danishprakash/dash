@@ -30,38 +30,29 @@ char *clr[2] = {"clear", NULL};
 
 
 
-/*****************************
+/*
  * function declarations *
-******************************/
+ */
 
+void history_input(char **, char *);
+void pipe_history_input(char *);
 void printtokens(char **);
 void get_dir(char *);
 void signalHandler();
-char **split_line(char *);
-char *read_line();
 int dash_cd(char **);
-int dash_echo(char **);
-int dash_ls(char **);
 int dash_exit(char **);
-int dash_pwd(char **);		
-int dash_tail(char **);			
-int dash_help(char **);
-int dash_head(char **);
-int dash_cat(char **);
-int dash_touch(char **);
 int dash_help(char **);
 int dash_grep(char **);
-int dash_file(char **);			//file name and file size
 int dash_launch(char **);
 int dash_execute(char **);
 int history_line_count();
 int dash_history();
 int dash_pipe(char **);
 int args_length(char **);
-char *trimws(char *);			//trim leading and trailing whitespace
+char **split_line(char *);
+char *read_line();
+char *trimws(char *);			//trim leading and trailing whitespaces
 char **split_pipes(char *);
-void history_input(char **, char *);
-void pipe_history_input(char *);
 char *get_hist_file_path();
 
 
@@ -79,9 +70,9 @@ int builtin_funcs_count()
 
 
 
-/*-----------------------------
+/*
  * function definitions *
--------------------------------*/
+ */
 
 void pipe_history_input(char *line)
 {
@@ -477,25 +468,6 @@ int dash_launch(char **args)
 }
 
 
-//int dash_file(char **args)
-//{
-//	int fp=0;
-//	struct stat st;
-//	if(args[1] != NULL && strcmp(args[0], "file") == 0)
-//	{	
-//		fp = open(args[1], O_RDONLY);
-//		if(fstat(fp, &st) > -1)
-//		{
-//			printf("Name:\t%s\nSize:\t%ld bytes\n", args[1], st.st_size);
-//		}	
-//		else
-//			printf( RED BOLD "dash: unable to access file" RESET "\n");
-//		close(fp);
-//	}
-//	return 1;
-//}
-
-
 int dash_grep(char **args)
 {
 	FILE *fp = NULL;
@@ -541,124 +513,6 @@ int dash_help(char **args)
 	return 1;
 }
 
-int dash_touch(char **args)
-{
-	FILE *fp;
-	if(args[0] != NULL && strcmp(args[0], "touch") == 0)
-	{
-		if(args[1] == NULL)
-		{
-			printf(RED "dash: 'touch' requires an argument" RESET "\n");
-
-			//return 1;
-		}
-		else
-		{
-			fp = fopen(args[1], "w");
-			fclose(fp);
-			//return 1;
-		}
-	}
-	return 1;
-}
-
-int dash_cat(char **args)
-{
-	FILE *fp = NULL;
-	int c;
-	if(args[0] != NULL && args[1] != NULL && strcmp(args[0], "cat") == 0)
-	{
-		fp = fopen(args[1], "r");
-		if(!fp)
-		{
-			fprintf(stderr, "%sdash: File not found%s\n", RED, RESET);
-			return 1;
-		}
-		else
-		{
-			while((c = getc(fp)) != EOF)
-			{
-				putchar(c);
-			}
-		}
-		fclose(fp);
-	}
-	return 1;
-}
-
-int dash_head(char **args)
-{
-	FILE *fp = NULL;
-	int c, i=0;
-	if(args[0] != NULL && strcmp(args[0], "head") == 0)
-	{
-		if(args[1] == NULL)
-		{
-			printf("%sdash: 'head' requires an argument%s\n", RED, RESET);
-			return 1;
-		}
-		else
-			fp = fopen(args[1], "r");
-		if(!fp)
-		{
-			printf("%sdash: File not found%s\n", RED,RESET);		
-			return 1;
-		}
-		else
-		{
-			 //fseek(fp, SEEK_SET, 50);
-	 		 while((c = getc(fp)) != EOF || i < 10)
-			 {
-				 putchar(c);
-				 if(c == '\n')
-					 i++;	
-			 }		 
-		}
-		fclose(fp);
-	}
-	return 1;
-}
-
-int dash_tail(char **args)
-{
-	FILE *fp = NULL;
-	int c, i=0;
-	if(args[0] != NULL && args[1] != NULL && strcmp(args[0], "tail") == 0)
-	{	
-		fp = fopen(args[1], "r");
-		if(!fp)
-		{	
-			printf("%sdash: File not found%s\n", RED, RESET);
-		}
-		else
-		{
-			fseek(fp, -150, SEEK_END);
-			//pos = ftell(fp);
-			//printf("%d\n", pos);
-			//fseek(fp, SEEK_END-10, SEEK_END);
-			//printf("\n");
-			while((c = getc(fp)) != EOF && i < 10)
-			{
-				putchar(c);
-				if(c == '\n')
-					i++;
-			}
-		}
-		fclose(fp);
-	}
-	return 1;
-}	
-
-
-int dash_pwd(char **args)
-{
-	if(args[0] != NULL && strcmp(args[0], "pwd") == 0)
-		get_dir("pwd");	
-	else
-		printf("dash: '%s' not a valid command\n", args[0]);
-	return 1;
-}
-		
 
 int dash_exit(char **args)
 {
@@ -666,40 +520,10 @@ int dash_exit(char **args)
 	return 0;
 }
 
-int dash_ls(char **args)
-{
-	struct dirent *dirPointer;	//directory pointer
-	DIR *dirReader = opendir(".");
 
-	if(!dirReader)
-		printf("%sdash: unable to list directory\n", RED);
-
-	while((dirPointer = readdir(dirReader)) != NULL)
-		printf("%s\n", dirPointer->d_name);
-
-	closedir(dirReader);
-	return 1;
-}
-	
-int dash_echo(char **args)
-{
-	if(args[1] == NULL)
-	{
-		fprintf(stderr, "%sdash: Please enter an argument to echo%s\n", YELLOW, RESET);
-	}
-	else if(strcmp(args[0], "echo") == 0)	//move these checks  to another func later on
-	{
-		int i = 1;
-		while(args[i] != NULL)
-		{
-			printf("%s ", args[i]);
-			i++;
-		}
-		printf("\n");
-	}
-	return 1;
-}
-
+/* 
+ * Provides the current working directory for the prompt
+ */
 void get_dir(char *state)
 {
 	char cwd[1024];
@@ -781,6 +605,9 @@ char **split_line(char *line)
 	return tokens;
 }
 
+/* 
+ * Test function
+ */
 void printtokens(char **tokens)
 {
 	int i = 0;
@@ -790,11 +617,6 @@ void printtokens(char **tokens)
 		i++;
 	}
 }
-
-/*
- * 
- */
-
 
 char *read_line()
 {
