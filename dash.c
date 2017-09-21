@@ -145,6 +145,22 @@ int args_length(char **args)
 	return i;
 }
 
+/*
+ * Starts off by copying the current stdin and stdout to tempin and tempout respectively
+ * Then loops to check for input redirection if any
+ * fdin is set to current stdin (current stdin or input redirection)
+ * next, the for loop iterates over each command in the array returned by split_pipes() 
+ * the dup2(fdin, 0) call duplicates fdin over 0 as in it sets as the stdin for current session
+ * and subsequent call closes fdin because it is no longer required ot be open
+ *
+ * subsequent if-elseif-else mechanism checks for output redirection and sets fdout accordingly
+ * if the command is the last one, we would like to see the o/p on the terminal, so the
+ * original tempout is resoted and if neither of the two condition meets, then the stdout
+ * is set to the output end of a new pipe created over the fd[2] variable.
+ *
+ * Now, fdout is set and is duplicated to the default stdin
+ * Commands are then executed one by one
+ */
 int dash_pipe(char **args)
 {
 	/*saving current stdin and stdout for restoring*/
@@ -166,26 +182,8 @@ int dash_pipe(char **args)
 			flag += 2;
 			//break;
 		}
-//	while(args[j] != NULL)
-//	{
-//		if(strcmp(args[j], "<") == 0)
-//		{
-//			//args[j] = NULL;
-//			fdin=open(args[j+1], O_RDONLY);
-//			flag += 2;
-//			//break;
-//		}
-//		else if(strcmp(args[j], ">") == 0)
-//		{
-//			fdout=open(args[j+1], O_WRONLY);
-//			flag += 2;
-//			//break;
-//			//args[j] = args[j+1] = NULL;		//enable after initial testing
-//			//break;
-//		}
 	}
-//		j++;
-//	}
+
 	if(!fdin)
 		fdin=dup(tempin);
 	int pid;
@@ -262,7 +260,10 @@ int dash_pipe(char **args)
 //	return 1;
 //}
 
-
+/*
+ * Returns the file path for the history command,
+ * path by default is the home directory
+ */
 char *get_hist_file_path()
 {
 	static char file_path[128];
@@ -355,16 +356,15 @@ int dash_history()
 				
 	   	}
 	}	
-	//printf("end of history\n");
-	//fclose(fp);
 	return 1;
 }
 			
-
+/*
+ * Returns the current number of lines in the history file
+ * for appending new items in the file
+ */
 int history_line_count()
 {
-//	char file_path[128];
-//	strcat(strcpy(file_path, getenv("HOME")), "/.dash_history");
 	FILE *fp = fopen(get_hist_file_path(), "r");
 	int c;
 	int numOfLines = 1;
@@ -419,17 +419,8 @@ int dash_execute(char **args)
 		printf(RED "Error forking" RESET "\n");
 	else
 	{    
-		//do {
-      			waitpid(cpid, &status, WUNTRACED);
-    		//} while (!WIFEXITED(status) && !WIFSIGNALED(status));
-//		do
-//		{	
-//			printf("inside parent\n");
-//		}while(wait(NULL)>0);
-//		return 1;
-		//printf("end of parent\n");
+		waitpid(cpid, &status, WUNTRACED);
 	}
-	//printf("end of execute\n");
 	return 1;
 
 }
@@ -462,7 +453,6 @@ int dash_launch(char **args)
 			//exit(EXIT_FAILURE);
 		}
 	}
-	//printf("end of launch\n");
 	return dash_execute(args);
 
 }
@@ -501,6 +491,10 @@ int dash_grep(char **args)
 }
 
 
+/* 
+ * Displays a brief description and a list of  builtin commands to the user for the
+ * input command - 'help'
+ */
 int dash_help(char **args)
 {
 	if(args[0] != NULL && strcmp(args[0], "help") == 0)
@@ -516,7 +510,6 @@ int dash_help(char **args)
 
 int dash_exit(char **args)
 {
-
 	return 0;
 }
 
@@ -531,7 +524,6 @@ void get_dir(char *state)
 	{
 		if(strcmp(state, "loop") == 0)
 			printf(RED "[ " RESET CYAN "%s" RESET RED " ] " RESET, cwd);
-			//printf("%s[ %s%s %s]%s ", RED, CYAN, cwd, RED, RESET); 	//change colors back to def
 		else if(strcmp(state, "pwd") == 0)
 			printf("%s\n", cwd);
 	}
@@ -595,13 +587,6 @@ char **split_line(char *line)
 
 	tokens[position] = NULL;
 
-//	int i=0;
-//	while(tokens[i] != NULL)
-//	{
-//		printf("%s\n", tokens[i]);
-//		i++;
-//	}
-	
 	return tokens;
 }
 
@@ -648,7 +633,7 @@ char *read_line()
 
 		if (position >= buffsize)
 		{
-			printf("Overflow buffer..alloacating more memory\n"); //test
+			printf("Overflow buffer....allocating more memory\n"); //test
 			buffsize += RL_BUFF_SIZE;
 			buffer = realloc(buffer, buffsize);
 
