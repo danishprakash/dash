@@ -60,7 +60,7 @@ char *get_hist_file_path();
 int (*builtin_funcs[])(char **) = {&dash_cd, &dash_help, &dash_exit, &dash_history, &dash_grep, &args_length };
 
 /* string array of builtin commands for strcmp() before invoking execvp() */
-char *builtin_str[] = { "dash_cd",  "help", "exit" , "history", "grep", "sizeof" };
+char *builtin_str[] = { "cd",  "help", "exit" , "history", "grep", "sizeof" };
 
 /* return the size of the builtin array */
 int builtin_funcs_count()
@@ -112,7 +112,6 @@ char *trimws(char *str)
 
 char **split_pipes(char *input)
 {
-	//char input[] = "cat dash.c | less | cat | grep | which";
 	char *p = strtok(input, "|");
 	char **s = malloc(1024*sizeof(char *));
 	int i = 0;
@@ -231,35 +230,6 @@ int dash_pipe(char **args)
 }
 
 
-/* Function for piping between just two commands */
-
-//int dash_pipe(char **arg1, char **arg2)
-//{
-//	int fd[2], cpid;
-//	pipe(fd);
-//
-//	int _stdin = dup(STDIN_FILENO);
-//
-//	if((cpid = fork()) == 0)
-//	{
-//		close(STDOUT_FILENO);
-//		dup(fd[1]);
-//		close(fd[0]);
-//		dash_execute(arg1);
-//		exit(EXIT_FAILURE);
-//	}
-//	else if(cpid > 0)
-//	{
-//		close(STDIN_FILENO);
-//		dup(fd[0]);
-//		close(fd[1]);
-//		dash_execute(arg2);
-//		dup2(_stdin, STDIN_FILENO);
-//		return 1;
-//	}
-//	return 1;
-//}
-
 /*
  * Returns the file path for the history command,
  * path by default is the home directory
@@ -275,8 +245,10 @@ char *get_hist_file_path()
 
 /* shows user it's recent history of entered commands and waits for user input
  * 
- * q - exit
- * line number - executes that particular command again from history */
+ * q:		exit
+ * line number: executes that particular command again from history 
+ * -1: 		reset history file
+ */
 int dash_history()
 {	
 	FILE *fp = fopen(get_hist_file_path(), "r");
@@ -305,7 +277,7 @@ int dash_history()
 	else if (ch == 0)
 	{	
 		fclose(fp);
-		return 1;//dash_execute(clr);
+		return 1;
 	}
 	else if(ch == -1)
 	{
@@ -321,7 +293,6 @@ int dash_history()
 		
 	   	while((fgets(line, 128, fp)) != NULL)
 	   	{
-			//printf("%d %d\n", ch ,line_num);
 			if(line_num == ch)
 			{
 
@@ -348,7 +319,6 @@ int dash_history()
 					args = split_pipes(prev_comm);
 					return dash_pipe(args);
 				}
-				//return dash_launch(args);	
 	
 			}
 			else
