@@ -471,7 +471,7 @@ int dash_help(char **args)
 	{
 		fprintf(stderr,"\n------\n" 
 				BOLD "\ndash " RESET "is a basic unix terminal shell written purely in C developed by Danish Prakash\n"
-				"\nSupported Commands:\n1. " ITALICS "cd" RESET "\n2. " ITALICS "exit" RESET "\n3. " ITALICS "help" RESET "\n4. " ITALICS "touch" RESET "\n5. " ITALICS "cat" RESET 
+				"\nSupported Commands:\n1. " BOLD "cd" RESET "\n2. " BOLD "exit" RESET "\n3. " BOLD "help" RESET "\n4. " BOLD "touch" RESET "\n5. " BOLD "cat" RESET 
 				"\n\n------\n\n");
 	}
 	return 1;
