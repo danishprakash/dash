@@ -456,7 +456,7 @@ int dash_grep(char **args)
 		}
 	}
 	if(flag == 0)
-		printf(ITALICS "No matches were found" RESET "\n");
+		printf("No matches were found\n");
 	return 1;
 }
 
@@ -471,7 +471,7 @@ int dash_help(char **args)
 	{
 		fprintf(stderr,"\n------\n" 
 				BOLD "\ndash " RESET "is a basic unix terminal shell written purely in C developed by Danish Prakash\n"
-				"\nSupported Commands:\n1. " BOLD "cd" RESET "\n2. " BOLD "exit" RESET "\n3. " BOLD "help" RESET "\n4. " BOLD "touch" RESET "\n5. " BOLD "cat" RESET 
+				"\nSupported Commands:\n1. cd\n2. exit\n3. help\n4. touch\n5. cat" 
 				"\n\n------\n\n");
 	}
 	return 1;
