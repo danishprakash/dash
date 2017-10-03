@@ -452,7 +452,7 @@ int dash_grep(char **args)
 		}
 		else
 		{
-			fprintf(stderr, RED "dash: grep requires two params, " ITALICS "PATTERN" RESET RED " and " RED ITALICS "FILE" RESET "\n");
+			fprintf(stderr, RED "dash: grep requires two params, "PATTERN" RESET RED " and "FILE" RESET "\n");
 		}
 	}
 	if(flag == 0)
