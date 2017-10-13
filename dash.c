@@ -512,13 +512,9 @@ int dash_cd(char **args)
 	{
 		fprintf(stderr, "%sdash: Please enter a path to cd%s\n", YELLOW, RESET);
 	}
-	else if(strcmp(args[0], "cd") == 0)	//move this check to another func later on
+	else if(chdir(args[1]) > 0)
 	{
-		//printf("%s", args[1]);
-		if(chdir(args[1]) > 0)
-		{
-			perror("dash");
-		}
+	  perror("dash");	
 	}
 	return 1;
 }
