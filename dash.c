@@ -456,7 +456,7 @@ int dash_grep(char **args)
 		}
 	}
 	if(flag == 0)
-		printf(ITALICS "No matches were found" RESET "\n");
+		printf("No matches were found\n");
 	return 1;
 }
 
