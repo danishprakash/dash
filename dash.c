@@ -120,7 +120,6 @@ char **split_pipes(char *input)
 		
 		s[i] = trimws(p);
 		i++;
-		//printf("%s_\n", p);
 		p = strtok(NULL, "| ");
 	}
 	s[i] = NULL;
@@ -176,10 +175,8 @@ int dash_pipe(char **args)
 		
 		if(strcmp(args[j], "<") == 0)
 		{
-			//args[j] = NULL;
 			fdin=open(args[j+1], O_RDONLY);
 			flag += 2;
-			//break;
 		}
 	}
 
@@ -283,7 +280,6 @@ int dash_history()
 	{
 		fclose(fp);
 		fp = fopen(get_hist_file_path(), "w");
-		//fprintf(fp, "");
 		fclose(fp);
 		return dash_execute(clr);
 	}
@@ -371,17 +367,14 @@ void signalHandler()
  *****************************************************************************/
 int dash_execute(char **args)
 {
-	//printf("inside execute\n");
 	pid_t cpid;
 	int status;
 	cpid = fork();
 
 	if(cpid == 0)
 	{	
-		//printf("inside child\n");
 		if(execvp(args[0], args) < 0)
 			printf("dash: command not found: %s\n", args[0]); 
-			//perror(RED "dash: " RESET);
 		exit(EXIT_FAILURE);
 		
 	}
@@ -420,7 +413,6 @@ int dash_launch(char **args)
 		if(strcmp(args[0], builtin_str[i]) == 0)
 		{	
 			return (*builtin_funcs[i])(args);	
-			//exit(EXIT_FAILURE);
 		}
 	}
 	return dash_execute(args);
@@ -506,15 +498,12 @@ void get_dir(char *state)
 
 int dash_cd(char **args)
 {
-	//printf(YELLOW "OWN" RESET "\n");
-	//get_dir();
 	if(args[1] == NULL)
 	{
 		fprintf(stderr, "%sdash: Please enter a path to cd%s\n", YELLOW, RESET);
 	}
 	else
 	{
-		//printf("%s", args[1]);
 		if(chdir(args[1]) > 0)
 		{
 			perror("dash");
@@ -591,7 +580,6 @@ char *read_line()
 		c  = getchar();
 		if (c == EOF || c == '\n')
 		{
-			//printf("\n"); 
 			buffer[position] = '\0';
 			return buffer;
 		}
@@ -633,7 +621,6 @@ void loop()
 	char **args;
 	int status=1, i = 0, flag = 0;
 	
-	//signal(SIGINT, signalHandler);
 
 	do{
 		get_dir("loop");
