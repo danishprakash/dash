@@ -234,7 +234,7 @@ int dash_pipe(char **args)
 char *get_hist_file_path()
 {
 	static char file_path[128];
-	strcat(strcpy(file_path, getenv("HOME")), "/.dash_history");
+	strcat(strncpy(file_path, getenv("HOME"), 113), "/.dash_history");
 	return file_path;
 }
 
